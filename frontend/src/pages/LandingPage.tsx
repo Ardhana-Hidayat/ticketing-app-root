@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,6 +6,21 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, ArrowRight, ShieldCheck, Ticket, Users } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+     fetch('http://localhost:8080/api/events')
+       .then(res => res.json())
+       .then(result => {
+         if (result.status === "success") {
+           setEvents(result.data);
+         }
+       })
+       .catch(err => console.error("Error API:", err))
+       .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-background font-sans text-foreground pb-20">
       
@@ -59,40 +74,42 @@ const LandingPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            { title: "Symphony of The Stars", date: "Oct 12, 2026", loc: "Jakarta Arena", price: "IDR 500,000", tag: "Concert" },
-            { title: "DevConnect Summit", date: "Nov 20, 2026", loc: "ICE BSD", price: "IDR 150,000", tag: "Tech" },
-            { title: "Culinary Night Fest", date: "Dec 05, 2026", loc: "GBK Plaza", price: "Free", tag: "Festival" }
-          ].map((item, i) => (
-            <Card key={i} className="group overflow-hidden rounded-2xl border-border bg-card shadow-none hover:shadow-sm transition-shadow">
-              <div className="aspect-[16/9] bg-muted relative overflow-hidden flex items-center justify-center">
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                 <Badge className="absolute top-4 right-4" variant="secondary">{item.tag}</Badge>
-                 {/* Placeholder for images */}
-                 <span className="text-muted-foreground font-semibold uppercase tracking-widest text-xs">Image Placeholder</span>
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold leading-tight mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
-                
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4 mr-2" /> {item.date}
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 mr-2" /> {item.loc}
-                  </div>
+          {loading ? (
+            <p className="text-muted-foreground">Memuat daftar acara dari server...</p>
+          ) : events.length === 0 ? (
+            <p className="text-muted-foreground">Yah, belum ada acara yang tersedia.</p>
+          ) : (
+            events.map((item: any) => (
+              <Card key={item.id} className="group overflow-hidden rounded-2xl border-border bg-card shadow-none hover:shadow-sm transition-shadow">
+                <div className="aspect-[16/9] bg-muted relative overflow-hidden flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <Badge className="absolute top-4 right-4" variant="secondary">Event</Badge>
+                    <span className="text-muted-foreground font-semibold uppercase tracking-widest text-xs">Image Placeholder</span>
                 </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold leading-tight mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
+                  
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4 mr-2" /> 
+                      {new Date(item.date).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4 mr-2" /> {item.location}
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Starting At</p>
-                    <p className="font-bold text-foreground text-lg">{item.price}</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Harga</p>
+                      <p className="text-foreground text-lg cursor-help font-bold" title={item.description}>Termurah</p>
+                    </div>
+                    <Button size="sm" variant="default" className="rounded-full">Get Ticket</Button>
                   </div>
-                  <Button size="sm" variant="default" className="rounded-full">Get Ticket</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </section>
 

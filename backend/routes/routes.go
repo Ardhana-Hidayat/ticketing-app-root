@@ -16,6 +16,10 @@ func SetupRoutes(r *gin.Engine) {
 
 	api := r.Group("/api")
 	{
+		// Public routes
+		api.GET("/events", controllers.GetPublicEvents)
+
+		// Admin routes
 		admin := api.Group("/admin")
 		{
 			events := admin.Group("/events")

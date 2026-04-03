@@ -10,6 +10,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // Izinkan semua origin
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	}
+}
+
 func main() {
 	// Connect to Database
 	config.ConnectDB()
@@ -23,6 +38,9 @@ func main() {
 
 	// Initialize Router
 	r := gin.Default()
+	
+	// Gunakan CORS Middleware
+	r.Use(CORSMiddleware())
 
 	// Setup Routes
 	routes.SetupRoutes(r)
@@ -32,4 +50,4 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Failed to start server: ", err)
 	}
-}
+}
