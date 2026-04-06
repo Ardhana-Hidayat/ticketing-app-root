@@ -9,7 +9,7 @@ import (
 func SetupRoutes(r *gin.Engine) {
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "OK",
+			"status":  "OK",
 			"message": "Connection Successfully! 🚀",
 		})
 	})
@@ -26,6 +26,9 @@ func SetupRoutes(r *gin.Engine) {
 			{
 				events.POST("", controllers.CreateEvent)
 				events.GET("", controllers.GetEvents)
+				events.GET("/:id", controllers.GetEventByID)
+				events.PUT("/:id", controllers.UpdateEvent)
+				events.DELETE("/:id", controllers.DeleteEvent)
 			}
 		}
 	}

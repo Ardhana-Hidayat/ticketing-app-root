@@ -22,5 +22,6 @@ type Event struct {
 	Description string    `json:"description"`
 	Date        time.Time `json:"date"`
 	Location    string    `json:"location"`
+	Image       string    `json:"image"`
 	IsActive    bool      `json:"is_active" gorm:"index"`
 }
