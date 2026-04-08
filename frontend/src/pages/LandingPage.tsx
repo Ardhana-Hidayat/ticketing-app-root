@@ -96,6 +96,51 @@ const LandingPage: React.FC = () => {
       .finally(() => setMerchLoading(false));
   }, []);
 
+  const eventScrollRef = useRef<HTMLDivElement>(null);
+  const [isEventsHovered, setIsEventsHovered] = useState(false);
+  const scrollPosRef = useRef(0);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftStart = useRef(0);
+
+  useEffect(() => {
+    let animationFrameId: number;
+    const scroll = () => {
+      // Hanya gerak otomatis jika tidak di-hover, tidak sedang drag, dan ada data
+      if (eventScrollRef.current && !isEventsHovered && !isDragging.current && apiEvents.length > 0) {
+        scrollPosRef.current += 1.2; // Kecepatan konstan yang smooth
+        
+        const maxScroll = eventScrollRef.current.scrollWidth / 2;
+        if (scrollPosRef.current >= maxScroll) {
+          scrollPosRef.current = 0;
+        }
+        eventScrollRef.current.scrollLeft = scrollPosRef.current;
+      }
+      animationFrameId = requestAnimationFrame(scroll);
+    };
+    animationFrameId = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isEventsHovered, apiEvents]);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!eventScrollRef.current) return;
+    isDragging.current = true;
+    startX.current = e.pageX - eventScrollRef.current.offsetLeft;
+    scrollLeftStart.current = eventScrollRef.current.scrollLeft;
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !eventScrollRef.current) return;
+    const x = e.pageX - eventScrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 2;
+    eventScrollRef.current.scrollLeft = scrollLeftStart.current - walk;
+    scrollPosRef.current = eventScrollRef.current.scrollLeft;
+  };
+
+  const stopDragging = () => {
+    isDragging.current = false;
+  };
+
   return (
     <>
       <style>{`
@@ -325,73 +370,92 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section id="events" className="bg-white py-24 relative">
+        <section id="events" className="bg-white py-16 relative overflow-hidden border-t-8 border-black">
           <div className="max-w-[1400px] mx-auto px-4 md:px-8 relative z-10">
 
-            <div className="mb-12">
-              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-stanton">
-                Jadwal & Lineup
-              </h2>
-              <div className="w-24 h-2 bg-salmon mt-4"></div>
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+              <div>
+                <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-stanton">
+                  Event Event Kami
+                </h2>
+                <div className="w-32 h-3 bg-salmon mt-4"></div>
+              </div>
+              <p className="text-xl font-bold uppercase text-discos max-w-md md:text-right">
+                jangan lewatkan event seru dari kami.
+              </p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div 
+            className="w-full relative select-none"
+            onMouseEnter={() => setIsEventsHovered(true)}
+            onMouseLeave={() => {
+              setIsEventsHovered(false);
+              stopDragging();
+            }}
+          >
+            <div 
+              ref={eventScrollRef}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={stopDragging}
+              onMouseLeave={stopDragging}
+              className="flex overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing gap-6 px-4 md:px-8 py-4"
+            >
               {eventsLoading && (
-                <div className="col-span-3 flex justify-center py-16">
-                  <div className="w-12 h-12 border-4 border-salmon border-t-transparent rounded-full animate-spin" />
+                <div className="w-full flex justify-center py-12">
+                  <div className="w-10 h-10 border-4 border-salmon border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
-              {!eventsLoading && apiEvents.map((item) => (
-                <Link to={`/event/${item.id}`} key={item.id} className="bg-cream rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all duration-300 flex flex-col cursor-pointer border border-gray-200 group">
 
-                  <div className="relative h-[250px] md:h-[280px] w-full overflow-hidden">
+              {!eventsLoading && apiEvents.length === 0 && (
+                <div className="flex-shrink-0 w-[420px]">
+                  <div className="h-[270px] bg-cream border-4 border-black rounded-3xl flex flex-col items-center justify-center text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                    <span className="text-4xl mb-2">🎟️</span>
+                    <p className="text-base font-black uppercase text-stanton">Belum ada event</p>
+                  </div>
+                </div>
+              )}
+              
+              {!eventsLoading && apiEvents.length > 0 && [...apiEvents, ...apiEvents].map((item, index) => (
+                <Link 
+                  to={`/event/${item.id}`} 
+                  key={`${item.id}-${index}`} 
+                  className="group cursor-pointer w-[390px] md:w-[450px] flex-shrink-0"
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  {/* Image box — same pattern as merchandise */}
+                  <div className="relative w-full h-[270px] bg-white border-4 border-black rounded-3xl overflow-hidden mb-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1 group-hover:translate-y-1 transition-all">
                     {item.banner_url ? (
                       <img
                         src={item.banner_url}
                         alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 pointer-events-none"
                       />
                     ) : (
-                      <div className="w-full h-full bg-stanton flex items-center justify-center">
-                        <span className="text-cream text-6xl font-black">🎵</span>
+                      <div className="w-full h-full bg-stanton flex items-center justify-center pointer-events-none">
+                        <span className="text-cream text-5xl font-black">🎵</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10"></div>
-
-                    <div className="absolute top-5 left-5">
-                      <span className="text-cream text-xs font-black italic tracking-widest drop-shadow-md">{item.location.split(',')[0].toUpperCase()}</span>
-                    </div>
-                    <div className="absolute top-5 right-5">
-                      <span className="text-salmon text-xs font-black tracking-widest drop-shadow-md">CONNECTED</span>
-                    </div>
-
-                    <div className="absolute bottom-5 left-5 right-5 text-cream">
-                      <h3 className="text-[1.8rem] md:text-4xl font-black uppercase leading-tight tracking-tighter drop-shadow-md mb-3">
-                        {item.title}
-                      </h3>
-                      <div className="flex justify-between items-center text-[0.55rem] md:text-[0.65rem] font-bold uppercase tracking-widest text-gray-300">
-                        <span>{item.location}</span>
-                        <span>{new Date(item.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}</span>
-                      </div>
-                    </div>
                   </div>
 
-                  <div className="p-6 md:p-8 flex-grow flex items-center">
-                    <p className="text-base md:text-lg text-stanton font-semibold leading-relaxed line-clamp-3">
-                      {item.description}
-                    </p>
-                  </div>
-
+                  {/* Text below — same pattern as merchandise: title + subtitle */}
+                  <h3 className="text-2xl font-black uppercase tracking-tighter text-stanton group-hover:text-salmon transition-colors line-clamp-1">{item.title}</h3>
+                  <p className="text-xl font-black text-black mt-1">
+                    {new Date(item.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
+                  </p>
+                  <span className="text-sm font-bold text-discos uppercase mt-2 inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Lihat Detail <ArrowRight className="w-4 h-4" />
+                  </span>
                 </Link>
               ))}
             </div>
 
-            <div className="mt-16 flex justify-center">
-              <button className="bg-black text-cream rounded-full px-10 py-4 text-lg font-bold uppercase tracking-widest transition-transform hover:-translate-y-1 hover:shadow-lg">
-                LIHAT SEMUA JADWAL
+            <div className="mt-12 flex justify-center">
+              <button className="bg-salmon text-cream border-4 border-black px-10 py-4 text-xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-3">
+                Lihat Semua Event <ArrowRight className="w-6 h-6" />
               </button>
             </div>
-
           </div>
         </section>
 

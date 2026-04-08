@@ -30,6 +30,8 @@ func SetupRoutes(
 			authGroup.POST("/register", authHandler.Register)
 			authGroup.POST("/login", authHandler.Login)
 			authGroup.POST("/google", authHandler.GoogleLogin)
+			authGroup.POST("/forgot-password", authHandler.ForgotPassword)
+			authGroup.POST("/reset-password", authHandler.ResetPassword)
 		}
 
 		// User Routes
@@ -38,6 +40,7 @@ func SetupRoutes(
 		{
 			usersGroup.GET("/me", authHandler.GetMe)
 			usersGroup.PUT("/me", authHandler.UpdateMe)
+			usersGroup.POST("/me/change-password", authHandler.ChangePassword)
 		}
 
 		// Event Routes (Public)
