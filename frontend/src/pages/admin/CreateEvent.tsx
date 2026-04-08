@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { adminApi } from '@/services/api';
 
 const CreateEvent: React.FC = () => {
@@ -58,7 +58,7 @@ const CreateEvent: React.FC = () => {
     }
     
     // Validate tiers
-    const isValidTiers = ticketTiers.every(t => t.name && t.price && t.quota && t.sales_start_at && t.sales_end_at);
+    const isValidTiers = ticketTiers.every(t => t.name && t.price !== '' && t.quota !== '' && t.sales_start_at && t.sales_end_at);
     if (!isValidTiers) {
       alert("Please fill in all required fields for each ticket tier.");
       return;
@@ -93,7 +93,14 @@ const CreateEvent: React.FC = () => {
       navigate('/admin/events');
     } catch (error) {
       console.error("Failed to create event:", error);
-      alert("Failed to create event. Check server connection or input data.");
+      if (error instanceof Error && 'errors' in error) {
+        const errorMsgs = Object.entries((error as any).errors || {})
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join('\n');
+        alert(`Input tidak valid:\n${errorMsgs}`);
+      } else {
+        alert("Failed to create event. Check server connection or input data.");
+      }
     } finally {
       setLoading(false);
     }

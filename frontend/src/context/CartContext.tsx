@@ -17,12 +17,15 @@ interface CartContextType {
   clearCart: () => void;
   getItemCount: () => number;
   getTotalPrice: () => number;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -93,7 +96,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateQuantity, 
       clearCart, 
       getItemCount, 
-      getTotalPrice 
+      getTotalPrice,
+      isCartOpen,
+      setIsCartOpen
     }}>
       {children}
     </CartContext.Provider>

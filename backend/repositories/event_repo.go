@@ -102,7 +102,6 @@ func (r *eventRepository) FindPublishedByID(ctx context.Context, id uint, now ti
 		Preload("TicketTypes", func(db *gorm.DB) *gorm.DB {
 			return ticketSelectColumns(db).
 				Where("active_status = ?", true).
-				Where("remaining_quota > 0").
 				Where("sales_start_at <= ?", now).
 				Where("sales_end_at >= ?", now).
 				Order("sales_start_at asc")

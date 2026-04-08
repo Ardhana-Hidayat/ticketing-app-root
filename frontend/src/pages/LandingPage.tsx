@@ -1,36 +1,36 @@
-import { ArrowRight, Flame, Menu, X, User, ShoppingCart } from 'lucide-react';
+// Icons provided by FontAwesome CDN in index.html
 import { eventsApi, merchandiseApi, authApi, type Event, type Merchandise } from '@/services/api';
 import { useCart } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import flyerImg from '@/assets/Flyer.webp';
+import logoImg from '@/assets/images/klix-logo.webp';
 import tshirtImg from '@/assets/tshirt.webp';
+import thePapsAudio from '@/assets/audio/perlahan-tenang.mp3';
+import daveImg from '@/assets/images/lineup/dave_the_paps.png';
+import g6gImg from '@/assets/images/lineup/g6g.png';
+import hakiImg from '@/assets/images/lineup/haki.png';
+import Lenis from 'lenis';
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
-const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false }: { text: string, bgClass: string, rotateClass: string, reverse?: boolean }) => {
+const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false, textColor = "text-white" }: { text: string, bgClass: string, rotateClass: string, reverse?: boolean, textColor?: string }) => {
   const marqueeRef = useRef<HTMLDivElement>(null);
-
   const currentSpeedRef = useRef(1);
   const targetSpeedRef = useRef(1);
-
   const xRef = useRef(reverse ? -50 : 0);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       targetSpeedRef.current = 3;
-
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-
       scrollTimeout.current = setTimeout(() => {
         targetSpeedRef.current = 1;
       }, 100);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -40,30 +40,25 @@ const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false }: { text: 
 
   useEffect(() => {
     let animationFrameId: number;
-
     const loop = () => {
       currentSpeedRef.current += (targetSpeedRef.current - currentSpeedRef.current) * 0.05;
-
       const dir = reverse ? 1 : -1;
       xRef.current += currentSpeedRef.current * 0.05 * dir;
-
       if (!reverse && xRef.current <= -50) xRef.current = 0;
       if (reverse && xRef.current >= 0) xRef.current = -50;
-
       if (marqueeRef.current) {
         marqueeRef.current.style.transform = `translateX(${xRef.current}%)`;
       }
       animationFrameId = requestAnimationFrame(loop);
     };
-
     animationFrameId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animationFrameId);
   }, [reverse]);
 
   return (
-    <div className={`w-full ${bgClass} text-cream border-b-8 border-black py-4 md:py-6 flex overflow-hidden transform ${rotateClass}`}>
+    <div className={`w-full ${bgClass} ${textColor} border-y border-white/10 py-3 md:py-5 flex overflow-hidden transform ${rotateClass}`}>
       <div ref={marqueeRef} className="flex w-[200%] items-center will-change-transform">
-        <span className="text-4xl md:text-6xl font-black uppercase tracking-widest whitespace-nowrap" style={{ textShadow: "3px 3px 0 #000" }}>
+        <span className="text-2xl md:text-4xl font-heading uppercase tracking-tighter whitespace-nowrap">
           {text}
         </span>
       </div>
@@ -71,15 +66,27 @@ const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false }: { text: 
   );
 };
 
-// Static events replaced by API — kept as fallback shape reference only
-
 const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { getItemCount } = useCart();
-  const marqueeText = " CONNECTED LAGI • FESTIVAL MUSIK • KONSER LOKAL • ".repeat(15);
+  const { getItemCount, isCartOpen, setIsCartOpen } = useCart();
+  const marqueeText = "GIXS DI KOTA • ".repeat(30);
 
-  // ─── API State ───────────────────────────────────────────────────────────
+  const MOCK_LINEUP = [
+    { id: 9991, title: 'DAVE THE PAPS', start_date: '2026-12-01T20:00:00Z', banner_url: daveImg, location: 'MAIN STAGE', description: 'Legendary Indonesian Reggae', publish_status: 'published' },
+    { id: 9992, title: 'G6G', start_date: '2026-12-02T20:00:00Z', banner_url: g6gImg, location: 'URBAN STAGE', description: 'Modern Rock Explosion', publish_status: 'published' },
+    { id: 9993, title: 'HAKI', start_date: '2026-12-03T20:00:00Z', banner_url: hakiImg, location: 'INDIE STAGE', description: 'Alternative Vibes', publish_status: 'published' },
+  ];
+
+  useEffect(() => {
+    const lenis = new Lenis();
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => lenis.destroy();
+  }, []);
+
   const [apiEvents, setApiEvents] = useState<Event[]>([]);
   const [apiMerch, setApiMerch] = useState<Merchandise[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -106,14 +113,35 @@ const LandingPage: React.FC = () => {
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeftStart = useRef(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     let animationFrameId: number;
     const scroll = () => {
-      // Hanya gerak otomatis jika tidak di-hover, tidak sedang drag, dan ada data
-      if (eventScrollRef.current && !isEventsHovered && !isDragging.current && apiEvents.length > 0) {
-        scrollPosRef.current += 1.2; // Kecepatan konstan yang smooth
-        
+      const displayEvents = apiEvents.length > 0 ? apiEvents : MOCK_LINEUP;
+      if (eventScrollRef.current && !isEventsHovered && !isDragging.current && displayEvents.length > 0) {
+        scrollPosRef.current += 1.2;
         const maxScroll = eventScrollRef.current.scrollWidth / 2;
         if (scrollPosRef.current >= maxScroll) {
           scrollPosRef.current = 0;
@@ -124,7 +152,7 @@ const LandingPage: React.FC = () => {
     };
     animationFrameId = requestAnimationFrame(scroll);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isEventsHovered, apiEvents]);
+  }, [isEventsHovered, apiEvents, MOCK_LINEUP]);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (!eventScrollRef.current) return;
@@ -148,139 +176,212 @@ const LandingPage: React.FC = () => {
   return (
     <>
       <style>{`
-        .pestapora-stroke {
-          color: var(--color-cream);
-          -webkit-text-stroke: 4px #000;
-          text-shadow: 8px 8px 0px rgba(0,0,0,1);
+        .boxed-heading {
+          display: inline-block;
+          background: white;
+          color: black;
+          padding: 0 10px;
+          line-height: 1.1;
         }
-        @media (min-width: 768px) {
-          .pestapora-stroke {
-            -webkit-text-stroke: 8px var(--color-discos);
-            text-shadow: 12px 12px 0px rgba(0,0,0,1);
-          }
+        .text-outline {
+          -webkit-text-stroke: 1px white;
+          color: transparent;
         }
       `}</style>
 
-      <div className="min-h-screen bg-cream font-sans text-black selection:bg-discos selection:text-cream overflow-x-hidden">
+      <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-pink selection:text-white overflow-x-hidden">
 
-        <nav className="sticky top-0 z-50 bg-cream border-b-2 border-gray-300">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-
-            <div className="flex items-center space-x-2 group cursor-pointer relative z-10">
-              <Flame className="w-8 h-8 md:w-10 md:h-10 fill-salmon group-hover:scale-125 group-hover:rotate-12 transition-transform" />
-              <span className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-salmon">connected</span>
+        {/* Floating Audio Player */}
+        <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[100] flex items-center justify-end">
+          <div 
+            className="bg-black border border-white/20 border-r-0 rounded-l-full py-3 px-4 pl-5 flex items-center gap-5 shadow-[0_0_30px_rgba(0,0,0,0.8)] cursor-pointer hover:bg-[#111] transition-colors" 
+            onClick={togglePlay}
+          >
+            {/* Toggle Icon */}
+            <div className="w-10 h-10 bg-white rounded-full flex flex-shrink-0 items-center justify-center text-black font-bold">
+              <i className="fa-solid fa-chevron-left"></i>
+            </div>
+            
+            {/* Graphic Badge */}
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              <i className={`fa-solid fa-compact-disc text-[50px] text-neon-pink z-0 ${isPlaying ? 'animate-[spin_2s_linear_infinite]' : ''}`}></i>
+              
+              {/* Notification Bubble */}
+              <div className="absolute -top-1 -right-1 z-20 w-6 h-6 bg-[#FE2C55] rounded-full flex items-center justify-center border-2 border-black">
+                <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'} text-white text-[8px] ${!isPlaying ? 'ml-[1px]' : ''}`}></i>
+              </div>
             </div>
 
-            <div className="hidden lg:flex items-center space-x-8 text-xl font-black uppercase tracking-tighter">
-              <a href="#" className="text-salmon hover:-translate-y-1 hover:rotate-2 transition-all">Home</a>
-              <a href="#tickets" className="text-stanton hover:text-salmon hover:-translate-y-1 hover:-rotate-2 transition-all">Ticket</a>
-              <a href="#events" className="text-stanton hover:text-discos hover:-translate-y-1 hover:rotate-2 transition-all">Line Up</a>
-              <a href="#" className="text-stanton hover:text-salmon hover:-translate-y-1 hover:-rotate-2 transition-all">Rundown</a>
+            <audio ref={audioRef} loop>
+               <source src={thePapsAudio} type="audio/mpeg" />
+            </audio>
+          </div>
+        </div>
+
+        <nav className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${isScrolled ? 'bg-white text-black shadow-md' : 'bg-black text-white'}`}>
+          <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+            <Link to="/" className="flex items-center group cursor-pointer relative z-10">
+              <img src={logoImg} alt="KlixTicket Logo" className={`h-12 w-auto object-contain transition-all duration-300 ${isScrolled ? 'invert' : ''}`} />
+            </Link>
+
+            <div className="hidden lg:flex items-center space-x-8 xl:space-x-12 text-sm md:text-xs xl:text-sm font-bold uppercase tracking-[0.2em] whitespace-nowrap">
+              <a href="#merchandise" className="hover:text-neon-yellow transition-colors">MERCHANDISE</a>
+              <a href="#lineup" className="hover:text-neon-blue transition-colors">LINE UP</a>
+              <a href="#about" className="hover:text-neon-pink transition-colors">About Us</a>
+
+              <div className="flex items-center gap-4 ml-4">
+                <a href="#tickets" className="h-[46px] px-8 bg-[#1a1a1a] border border-white/20 hover:bg-white hover:text-black transition-all flex items-center justify-center tracking-widest text-[#ddd] font-heading text-lg">
+                  TICKET
+                </a>
+
+                <button onClick={() => setIsCartOpen(true)} className="relative group w-[46px] h-[46px] bg-black border border-white/20 hover:border-neon-cyan transition-colors flex items-center justify-center">
+                  <i className="fa-solid fa-cart-shopping text-[18px] text-[#ddd] group-hover:text-neon-cyan transition-colors"></i>
+                  {getItemCount() > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-neon-pink text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {getItemCount()}
+                    </span>
+                  )}
+                </button>
+
                 {currentUser ? (
-                <Link to="/profile" className="flex items-center gap-3 group/profile">
-                  <div className="w-10 h-10 rounded-full border-2 border-black overflow-hidden bg-cream shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform group-hover/profile:-translate-y-1">
+                  <Link to="/profile" className="group w-[46px] h-[46px] bg-black border border-white/20 hover:border-neon-pink transition-colors flex items-center justify-center overflow-hidden">
                     {currentUser.avatar_url ? (
                       <img src={currentUser.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-stanton">
-                        <User className="w-5 h-5 text-cream" />
-                      </div>
+                      <i className="fa-solid fa-user text-[18px] text-[#ddd] group-hover:text-neon-pink transition-colors"></i>
                     )}
-                  </div>
-                  <span className="text-discos font-black uppercase text-base hover:text-salmon transition-colors">
-                    {currentUser.name.split(' ')[0]}
-                  </span>
-                </Link>
-              ) : (
-                <Link to="/login" className="bg-salmon text-cream border-4 border-black px-5 py-2 text-base font-black uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">Masuk</Link>
-              )}
-
-              {/* Cart Toggle */}
-              <button 
-                onClick={() => setIsCartOpen(true)}
-                className="relative bg-white border-4 border-black p-2 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all group"
-              >
-                <ShoppingCart className="w-6 h-6 text-stanton group-hover:text-salmon transition-colors" />
-                {getItemCount() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-salmon text-cream text-[10px] font-black w-6 h-6 rounded-full border-2 border-black flex items-center justify-center animate-bounce">
-                    {getItemCount()}
-                  </span>
+                  </Link>
+                ) : (
+                  <Link to="/login" className="group w-[46px] h-[46px] bg-black border border-white/20 hover:border-neon-pink transition-colors flex items-center justify-center">
+                    <i className="fa-solid fa-user text-[18px] text-[#ddd] group-hover:text-neon-pink transition-colors"></i>
+                  </Link>
                 )}
-              </button>
+              </div>
             </div>
 
-            <button
-              className="lg:hidden relative z-50 text-stanton hover:text-salmon transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-10 h-10" /> : <Menu className="w-10 h-10" />}
+            <button className={`lg:hidden relative z-50 transition-colors duration-300 ${isScrolled && !isMenuOpen ? 'text-black' : 'text-white'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <i className="fa-solid fa-xmark text-3xl"></i> : <i className="fa-solid fa-bars text-3xl"></i>}
             </button>
           </div>
 
+          {/* Overlay mask (Tetap dipertahankan transparan 60% agar layar utama masih terlihat samar) */}
           <div
-            className={`fixed inset-0 bg-black/50 z-30 transition-opacity duration-500 lg:hidden ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+            className={`fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 lg:hidden ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
             onClick={() => setIsMenuOpen(false)}
           ></div>
 
-          <div className={`fixed top-0 right-0 w-[80vw] max-w-[350px] h-screen bg-cream z-40 border-l-4 border-black shadow-[-10px_0_20px_rgba(0,0,0,0.2)] flex flex-col items-start pt-32 px-10 space-y-8 transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] lg:hidden ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-            <a href="#" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-salmon hover:translate-x-2 transition-transform">Home</a>
-            <a href="#events" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-stanton hover:text-salmon hover:translate-x-2 transition-transform">Ticket</a>
-            <a href="#events" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-stanton hover:text-discos hover:translate-x-2 transition-transform">Line Up</a>
-            <a href="#" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-stanton hover:text-salmon hover:translate-x-2 transition-transform">Rundown</a>
-            <a href="#" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-stanton hover:text-discos hover:translate-x-2 transition-transform">Festival</a>
-            <a href="#" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-stanton hover:text-salmon hover:translate-x-2 transition-transform">Shop</a>
-            {currentUser && (
-              <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-discos hover:translate-x-2 transition-transform">Profil Saya</Link>
-            )}
-            <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-stanton hover:text-discos hover:translate-x-2 transition-transform mt-auto pb-10">Gallery</Link>
+          {/* Sidebar (Solid Black) */}
+          <div className={`fixed top-0 right-0 h-full w-[80vw] max-w-[320px] bg-black z-40 border-l border-white/10 transition-transform duration-500 ease-out lg:hidden flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+
+            {/* Spacing untuk tombol close */}
+            <div className="h-32 shrink-0"></div>
+
+            {/* Menu Links */}
+            <div className="flex-1 flex flex-col px-10 overflow-y-auto pb-10 scrollbar-hide">
+              <div className="flex flex-col items-start space-y-6 text-2xl font-bold uppercase tracking-[0.2em] w-full">
+                <a href="#" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-pink transition-colors w-full border-b border-white/10 pb-4">Home</a>
+                <a href="#events" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-cyan transition-colors w-full border-b border-white/10 pb-4">Line Up</a>
+                <a href="#shop" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-yellow transition-colors w-full border-b border-white/10 pb-4">Shop</a>
+
+                {/* Cart di Mobile */}
+                <button onClick={() => { setIsMenuOpen(false); setIsCartOpen(true); }} className="hover:text-neon-cyan transition-colors w-full border-b border-white/10 pb-4 flex items-center justify-between text-left">
+                  <span>Cart</span>
+                  {getItemCount() > 0 && (
+                    <span className="bg-neon-pink text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                      {getItemCount()}
+                    </span>
+                  )}
+                </button>
+
+                <a href="#tickets" onClick={() => setIsMenuOpen(false)} className="text-neon-pink hover:text-white transition-colors w-full border-b border-white/10 pb-4">Tickets</a>
+              </div>
+
+              {/* Profile / Login Area */}
+              <div className="mt-8 pt-4 w-full">
+                {currentUser ? (
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 group/profile hover:text-neon-pink transition-colors w-full">
+                    <div className="w-12 h-12 rounded-full border border-white/20 overflow-hidden bg-dark-grey transition-all group-hover/profile:border-neon-pink shrink-0">
+                      {currentUser.avatar_url ? (
+                        <img src={currentUser.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-dark-grey">
+                          <i className="fa-solid fa-user text-white/50 text-lg"></i>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-lg font-bold tracking-[0.2em] uppercase line-clamp-1">
+                      {currentUser.name}
+                    </span>
+                  </Link>
+                ) : (
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-pink transition-colors text-xl font-bold uppercase tracking-[0.2em]">
+                    Login
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar Footer (Solid Black) */}
+            <div className="mt-auto p-10 border-t border-white/10 shrink-0 bg-black">
+              <a href="#" className="flex justify-center items-center text-2xl hover:text-neon-pink transition-colors focus:outline-none">
+                <i className="fa-brands fa-instagram mt-[2px]"></i>
+                <span className="text-sm pl-3 font-bold tracking-[0.2em] uppercase leading-none">
+                  @SOUNDSAJANG
+                </span>
+              </a>
+            </div>
+
           </div>
         </nav>
 
-        {/* 2. Hero Section with Background Image */}
-        {/* GANTI URL DI BAWAH INI DENGAN PATH KE GAMBAR .WEBP KAMU.
-           Contoh: backgroundImage: `url('/images/hero-connected.webp')`
-           Untuk dummy ini, aku pakai gambar festival dari unsplash.
-        */}
-        <section className="relative overflow-hidden w-full aspect-[16/9] bg-black">
-          <img
-            src={flyerImg}
-            alt="flyer"
-            className="absolute inset-0 z-0 w-full h-full object-cover object-center"
-          />
+        {/* Hero Section */}
+        <section className="relative min-h-[calc(100vh-0px)] mt-[80px] flex flex-col justify-end items-center overflow-hidden pb-32">
+          <div className="absolute inset-0 z-0 bg-black pointer-events-none overflow-hidden flex items-center justify-center">
+            <iframe
+              src="https://www.youtube.com/embed/xo8ltw1URqE?autoplay=1&mute=1&controls=0&loop=1&playlist=xo8ltw1URqE&playsinline=1&modestbranding=1&disablekb=1"
+              className="absolute w-[200vw] h-[200vh] md:w-[150vw] md:h-[150vh] xl:w-[110vw] xl:h-[150vh]"
+              allow="autoplay; fullscreen; picture-in-picture"
+              style={{ border: 'none' }}
+              title="Hero Background Video"
+            ></iframe>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10"></div>
+          </div>
+
+          {/* Ambient Lighting Override */}
+          <div className="absolute top-[10%] left-[-10%] w-[60%] h-[60%] bg-neon-pink/20 rounded-full blur-[120px] animate-pulse z-0 mix-blend-overlay"></div>
+          <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-neon-cyan/20 rounded-full blur-[120px] animate-pulse z-0 mix-blend-overlay" style={{ animationDelay: '2s' }}></div>
+
         </section>
 
-        <div className="relative z-20 w-full mt-auto">
+        <div className="relative z-20 w-full">
           <MarqueeBanner
             text={marqueeText}
-            bgClass="bg-salmon"
-            rotateClass="-rotate-1 scale-105 origin-bottom"
+            bgClass="bg-neon-pink"
+            rotateClass=""
             reverse={false}
           />
         </div>
 
-        <section id="tickets" className="bg-cream py-24 border-t-2 border-gray-300">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+        <section id="tickets" className="bg-black py-40 border-t border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-neon-cyan/5 rounded-full blur-[100px]"></div>
 
-            <div className="text-center mb-16">
-              <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-stanton">
-                AMANKAN SLOTMU!
+          <div className="max-w-[1400px] mx-auto px-4 md:px-8 relative z-10">
+            <div className="text-center mb-32">
+              <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter mb-6 uppercase">
+                TICKET <span className="text-outline">INFORMATION</span>
               </h2>
-              <p className="text-xl md:text-2xl font-bold uppercase text-discos tracking-tight">
-                jangan sampai nangis di pojokan karena kehabisan
-              </p>
             </div>
 
-            <div className="flex justify-center max-w-[1400px] mx-auto">
+            <div className="flex justify-center">
               {apiEvents.length === 0 && !eventsLoading ? (
-                <div className="text-center py-20 font-black uppercase text-stanton opacity-50">
-                   Belum ada event yang tersedia
+                <div className="text-center py-20 font-heading text-5xl uppercase opacity-20">
+                  NO EVENTS SCHEDULED
                 </div>
               ) : (
                 (() => {
-                  const closestEvent = [...apiEvents].sort((a, b) => 
+                  const closestEvent = [...apiEvents].sort((a, b) =>
                     new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
                   )[0];
-
                   if (!closestEvent) return null;
 
                   const sortedTiers = [...(closestEvent.ticket_types || [])].sort((a, b) => a.price - b.price);
@@ -290,54 +391,58 @@ const LandingPage: React.FC = () => {
                     const end = new Date(t.sales_end_at);
                     return now >= start && now <= end && t.remaining_quota > 0;
                   }) || sortedTiers[0];
-
                   const isSoldOut = closestEvent.ticket_types?.every(t => t.remaining_quota <= 0);
 
                   return (
-                    <div key={closestEvent.id} className={`w-full max-w-lg bg-white border-4 border-black rounded-3xl p-8 relative transition-all ${isSoldOut ? 'opacity-60 grayscale' : 'shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-2'}`}>
+                    <div key={closestEvent.id} className={`w-full max-w-4xl bg-dark-grey border border-white/10 p-12 relative transition-all group ${isSoldOut ? 'opacity-60 grayscale' : 'hover:border-neon-pink'}`}>
                       {isSoldOut && (
-                        <div className="absolute top-10 right-[-35px] bg-burgundy text-cream px-12 py-2 rotate-45 font-black text-xl border-2 border-black shadow-lg z-10">
+                        <div className="absolute top-10 right-[-35px] bg-neon-pink text-white px-12 py-3 rotate-45 font-heading text-3xl z-10">
                           SOLD OUT
                         </div>
                       )}
-                      
-                      <div className="aspect-[4/5] bg-gray-100 rounded-2xl border-4 border-black overflow-hidden mb-6 relative group/img">
-                        {closestEvent.banner_url ? (
-                          <img src={closestEvent.banner_url} alt={closestEvent.title} className="w-full h-full object-cover transition-transform group-hover/img:scale-110" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-stanton text-cream text-6xl">🎵</div>
-                        )}
-                        <div className="absolute bottom-4 left-4 right-4 bg-cream border-2 border-black p-2 rounded-lg font-black uppercase text-xs">
-                          {new Date(closestEvent.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                        <div className="aspect-[3/4] bg-black border border-white/5 overflow-hidden relative group/img">
+                          {closestEvent.banner_url ? (
+                            <img src={closestEvent.banner_url} alt={closestEvent.title} className="w-full h-full object-cover transition-all duration-1000 group-hover/img:scale-110 grayscale group-hover/img:grayscale-0" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-dark-grey text-white/5 text-9xl font-heading">?</div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col h-full justify-between">
+                          <div>
+                            <span className="text-neon-pink font-bold tracking-[0.3em] text-sm mb-6 block uppercase">
+                              {new Date(closestEvent.start_date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                            <h3 className="text-5xl md:text-7xl font-heading leading-[0.9] mb-10 group-hover:text-neon-pink transition-colors uppercase">{closestEvent.title}</h3>
+                            <div className="mb-12">
+                              {activeTier ? (
+                                <>
+                                  <p className="text-xs font-bold text-white/30 uppercase tracking-[0.2em] mb-3">{activeTier.name}</p>
+                                  <span className="text-6xl md:text-7xl font-heading tracking-tighter text-white">
+                                    {formatPrice(activeTier.price)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-6xl font-heading tracking-tighter text-white">TBA</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {isSoldOut ? (
+                            <button disabled className="w-full bg-white/5 text-white/20 py-6 font-heading text-3xl uppercase cursor-not-allowed border border-white/5">
+                              OUT OF STOCK
+                            </button>
+                          ) : (
+                            <Link to={`/event/${closestEvent.id}`} className="w-full">
+                              <button className="w-full bg-white text-black font-heading text-3xl py-6 hover:bg-neon-pink hover:text-white transition-all tracking-widest uppercase">
+                                BUY TICKETS
+                              </button>
+                            </Link>
+                          )}
                         </div>
                       </div>
-
-                      <h3 className="text-2xl font-black uppercase mb-2 text-stanton line-clamp-2 min-h-[4rem]">{closestEvent.title}</h3>
-                      
-                      <div className="mb-8">
-                        {activeTier ? (
-                          <>
-                            <p className="text-xs font-black text-discos uppercase tracking-widest mb-1">{activeTier.name}</p>
-                            <span className="text-4xl font-black tracking-tighter text-black">
-                              {formatPrice(activeTier.price)}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-4xl font-black tracking-tighter text-black">HTM TBA</span>
-                        )}
-                      </div>
-
-                      {isSoldOut ? (
-                        <button disabled className="w-full bg-gray-200 text-gray-500 py-4 rounded-xl text-xl font-black uppercase cursor-not-allowed border-2 border-black">
-                          Habis Terjual
-                        </button>
-                      ) : (
-                        <Link to={`/event/${closestEvent.id}`}>
-                          <button className="w-full bg-salmon text-cream border-4 border-black py-4 rounded-xl text-xl font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
-                            Sikat Tiket!
-                          </button>
-                        </Link>
-                      )}
                     </div>
                   );
                 })()
@@ -346,213 +451,174 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Section Merchandise Connected */}
-        <section id="shop" className="bg-cream py-24 border-t-8 border-black">
+        <section id="shop" className="bg-black py-40 border-t border-white/10">
           <div className="max-w-[1400px] mx-auto px-4 md:px-8">
-            
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-32 gap-8">
               <div>
-                <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-stanton">
-                  OFFICIAL MERCH
+                <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter uppercase">
+                  MERCH<span className="text-outline">ANDISE</span>
                 </h2>
-                <div className="w-32 h-3 bg-salmon mt-4"></div>
               </div>
-              <p className="text-xl font-bold uppercase text-discos max-w-md md:text-right">
-                pakai kebanggaanmu, bawa pulang kenangan dari kota pendekar.
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-
-              {/* Fallback static item if API not loaded */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
               {!merchLoading && apiMerch.length === 0 && (
                 <div className="group cursor-pointer">
-                  <div className="relative aspect-square bg-white border-4 border-black rounded-3xl overflow-hidden mb-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1 group-hover:translate-y-1 transition-all">
-                    <img
-                      src={tshirtImg}
-                      alt="Official Tee"
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                    />
+                  <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-yellow group-hover:-translate-y-2">
+                    <img src={tshirtImg} alt="Official Tee" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" />
                   </div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter text-stanton group-hover:text-salmon transition-colors">Connected Oversize Tee</h3>
-                  <p className="text-xl font-black text-black mt-1">RP 180.000</p>
+                  <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-yellow transition-colors uppercase">Soundrenaline Tee</h3>
+                  <p className="text-2xl font-heading text-white/40 mt-2 tracking-tighter">RP 180.000</p>
                 </div>
               )}
 
-              {/* API Merch Items */}
               {apiMerch.slice(0, 4).map(item => (
                 <Link to={`/merchandise/${item.id}`} key={item.id} className="group cursor-pointer">
-                  <div className="relative aspect-square bg-white border-4 border-black rounded-3xl overflow-hidden mb-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1 group-hover:translate-y-1 transition-all">
+                  <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-yellow group-hover:-translate-y-2">
                     {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                      />
+                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" />
                     ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-6xl">🛍️</span>
+                      <div className="w-full h-full bg-dark-grey flex items-center justify-center opacity-10">
+                        <i className="fa-solid fa-cart-shopping text-6xl"></i>
                       </div>
                     )}
                   </div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter text-stanton group-hover:text-salmon transition-colors">{item.name}</h3>
-                  <p className="text-xl font-black text-black mt-1">{formatPrice(item.price)}</p>
+                  <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-yellow transition-colors uppercase line-clamp-1">{item.name}</h3>
+                  <p className="text-2xl font-heading text-white/40 mt-2 tracking-tighter">{formatPrice(item.price)}</p>
                 </Link>
               ))}
-
             </div>
 
-            <div className="mt-16 flex justify-center">
-              <button className="bg-salmon text-cream border-4 border-black px-12 py-5 text-2xl font-black uppercase tracking-tighter shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-3">
-                Cek Semua Katalog <ArrowRight className="w-8 h-8" />
+            <div className="mt-24 flex justify-center">
+              <button className="group relative bg-white text-black px-12 py-6 font-heading text-3xl tracking-widest hover:bg-neon-yellow hover:text-black transition-all flex items-center gap-6">
+                EXPLORE ALL <i className="fa-solid fa-arrow-right text-3xl group-hover:translate-x-3 transition-transform"></i>
               </button>
             </div>
           </div>
         </section>
 
-        <section id="events" className="bg-white py-16 relative overflow-hidden border-t-8 border-black">
+        <section id="events" className="bg-black py-40 relative overflow-hidden border-t border-white/10">
           <div className="max-w-[1400px] mx-auto px-4 md:px-8 relative z-10">
-
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-6">
               <div>
-                <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-stanton">
-                  Event Event Kami
+                <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter uppercase">
+                  FEATURED <span className="text-outline">SHOW</span>
                 </h2>
-                <div className="w-32 h-3 bg-salmon mt-4"></div>
               </div>
-              <p className="text-xl font-bold uppercase text-discos max-w-md md:text-right">
-                jangan lewatkan event seru dari kami.
-              </p>
             </div>
           </div>
 
-          <div 
+          <div
             className="w-full relative select-none"
             onMouseEnter={() => setIsEventsHovered(true)}
-            onMouseLeave={() => {
-              setIsEventsHovered(false);
-              stopDragging();
-            }}
+            onMouseLeave={() => { setIsEventsHovered(false); stopDragging(); }}
           >
-            <div 
+            <div
               ref={eventScrollRef}
               onMouseDown={onMouseDown}
               onMouseMove={onMouseMove}
               onMouseUp={stopDragging}
               onMouseLeave={stopDragging}
-              className="flex overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing gap-6 px-4 md:px-8 py-4"
+              className="flex overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing gap-12 px-4 md:px-8 py-10"
             >
               {eventsLoading && (
-                <div className="w-full flex justify-center py-12">
-                  <div className="w-10 h-10 border-4 border-salmon border-t-transparent rounded-full animate-spin" />
+                <div className="w-full flex justify-center py-24">
+                  <div className="w-16 h-16 border-4 border-neon-cyan border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
-
-              {!eventsLoading && apiEvents.length === 0 && (
-                <div className="flex-shrink-0 w-[420px]">
-                  <div className="h-[270px] bg-cream border-4 border-black rounded-3xl flex flex-col items-center justify-center text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <span className="text-4xl mb-2">🎟️</span>
-                    <p className="text-base font-black uppercase text-stanton">Belum ada event</p>
-                  </div>
-                </div>
-              )}
-              
-              {!eventsLoading && apiEvents.length > 0 && [...apiEvents, ...apiEvents].map((item, index) => (
-                <Link 
-                  to={`/event/${item.id}`} 
-                  key={`${item.id}-${index}`} 
-                  className="group cursor-pointer w-[390px] md:w-[450px] flex-shrink-0"
-                  onDragStart={(e) => e.preventDefault()}
-                >
-                  {/* Image box — same pattern as merchandise */}
-                  <div className="relative w-full h-[270px] bg-white border-4 border-black rounded-3xl overflow-hidden mb-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1 group-hover:translate-y-1 transition-all">
-                    {item.banner_url ? (
-                      <img
-                        src={item.banner_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 pointer-events-none"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-stanton flex items-center justify-center pointer-events-none">
-                        <span className="text-cream text-5xl font-black">🎵</span>
+              {(!eventsLoading && apiEvents.length === 0) ? (
+                /* Jika data API kosong, tampilkan MOCK_LINEUP artist cards */
+                [...MOCK_LINEUP, ...MOCK_LINEUP].map((item, index) => (
+                  <div key={`${item.id}-${index}`} className="group cursor-pointer w-[450px] md:w-[700px] flex-shrink-0">
+                    <div className="relative w-full aspect-[16/9] bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-cyan group-hover:-translate-y-2">
+                       <img src={item.banner_url} alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-10">
+                        <span className="text-neon-cyan font-bold tracking-[0.6em] text-sm flex items-center gap-3 uppercase">
+                          ARTIST PROFILE <i className="fa-solid fa-arrow-right text-xl"></i>
+                        </span>
                       </div>
-                    )}
+                    </div>
+                    <h3 className="text-5xl md:text-6xl font-heading tracking-tighter group-hover:text-neon-cyan transition-colors line-clamp-1 uppercase">{item.title}</h3>
+                    <div className="flex items-center gap-6 mt-4">
+                      <span className="text-2xl font-heading text-white/30 uppercase tracking-tighter">
+                        {item.description}
+                      </span>
+                      <div className="h-4 w-[1px] bg-white/10"></div>
+                      <span className="text-sm font-bold text-neon-pink uppercase tracking-[0.3em] leading-none">
+                        Featured Lineup
+                      </span>
+                    </div>
                   </div>
-
-                  {/* Text below — same pattern as merchandise: title + subtitle */}
-                  <h3 className="text-2xl font-black uppercase tracking-tighter text-stanton group-hover:text-salmon transition-colors line-clamp-1">{item.title}</h3>
-                  <p className="text-xl font-black text-black mt-1">
-                    {new Date(item.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
-                  </p>
-                  <span className="text-sm font-bold text-discos uppercase mt-2 inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Lihat Detail <ArrowRight className="w-4 h-4" />
-                  </span>
-                </Link>
-              ))}
-            </div>
-
-            <div className="mt-12 flex justify-center">
-              <button className="bg-salmon text-cream border-4 border-black px-10 py-4 text-xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-3">
-                Lihat Semua Event <ArrowRight className="w-6 h-6" />
-              </button>
+                ))
+              ) : (
+                /* Jika data API ada, tampilkan event dari database */
+                !eventsLoading && [...apiEvents, ...apiEvents].map((item, index) => (
+                  <Link to={`/event/${item.id}`} key={`${item.id}-${index}`} className="group cursor-pointer w-[450px] md:w-[700px] flex-shrink-0" onDragStart={(e) => e.preventDefault()}>
+                    <div className="relative w-full aspect-[16/9] bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-cyan group-hover:-translate-y-2">
+                      {item.banner_url ? (
+                        <img src={item.banner_url} alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 pointer-events-none" />
+                      ) : (
+                        <div className="w-full h-full bg-dark-grey flex items-center justify-center opacity-10">
+                          <span className="text-9xl font-heading">🎵</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-10">
+                        <span className="text-neon-cyan font-bold tracking-[0.6em] text-sm flex items-center gap-3 uppercase">
+                          EXPLORE LINEUP <i className="fa-solid fa-arrow-right text-xl"></i>
+                        </span>
+                      </div>
+                    </div>
+                    <h3 className="text-5xl md:text-6xl font-heading tracking-tighter group-hover:text-neon-cyan transition-colors line-clamp-1 uppercase">{item.title}</h3>
+                    <div className="flex items-center gap-6 mt-4">
+                      <span className="text-2xl font-heading text-white/30 uppercase tracking-tighter">
+                        {new Date(item.start_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      <div className="h-4 w-[1px] bg-white/10"></div>
+                      <span className="text-sm font-bold text-neon-pink uppercase tracking-[0.3em] leading-none">
+                        Tickets Available
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </section>
 
-        <MarqueeBanner
-          text={marqueeText}
-          bgClass="bg-stanton"
-          rotateClass="rotate-1 scale-105 origin-top"
-          reverse={true}
-        />
+        <MarqueeBanner text={marqueeText} bgClass="bg-neon-cyan" rotateClass="" reverse={true} textColor="text-black" />
 
-        <footer className="bg-black text-cream py-16 border-t-8 border-burgundy">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 mb-16">
-
-              <div className="md:col-span-5 lg:col-span-4">
-                <h2 className="text-3xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
-                  <Flame className="w-8 h-8 text-salmon" />
-                  <span className="text-salmon">CONNECTED.</span>
-                </h2>
-                <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-sm">
-                  platform penyedia tiket event lokal dan festival musik terbesar. kami memberikan kemudahan akses untuk merayakan mudamu tanpa ribet.
-                </p>
-              </div>
-
-              <div className="hidden lg:block lg:col-span-2"></div>
-
-              <div className="md:col-span-3 lg:col-span-3">
-                <h3 className="font-bold uppercase tracking-widest text-xs mb-6 text-discos">Jelajahi</h3>
-                <ul className="space-y-4 text-sm font-medium text-cream">
-                  <li><a href="#events" className="hover:text-salmon transition-colors">Lineup Event</a></li>
-                  <li><a href="#" className="hover:text-salmon transition-colors">Merchandise</a></li>
-                  <li><a href="#" className="hover:text-salmon transition-colors">Tentang Kami</a></li>
-                  <li><a href="#" className="hover:text-salmon transition-colors">Bantuan / FAQ</a></li>
-                </ul>
-              </div>
-
-              <div className="md:col-span-4 lg:col-span-3">
-                <h3 className="font-bold uppercase tracking-widest text-xs mb-6 text-discos">Ikuti Kami</h3>
-                <div className="flex flex-col space-y-4 text-sm font-medium text-cream">
-                  <a href="#" className="hover:text-salmon transition-colors">Instagram</a>
-                  <a href="#" className="hover:text-salmon transition-colors">Twitter / X</a>
-                  <a href="#" className="hover:text-salmon transition-colors">TikTok</a>
-                </div>
-              </div>
+        <footer className="bg-black text-white pt-32 pb-20 border-t border-white/5 relative">
+          <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/5 via-black to-black opacity-50"></div>
+          <div className="max-w-[1400px] mx-auto px-4 md:px-8 flex flex-col items-center relative z-10">
+            {/* Logo */}
+            <div className="mb-16">
+              <img src={logoImg} alt="KlixTicket Logo" className="h-24 md:h-32 object-contain" />
             </div>
 
-            <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-xs md:text-sm text-gray-500">
-              <p>© 2026 CONNECTED CORP. all rights reserved.</p>
-              <div className="flex gap-6 font-medium">
-                <a href="#" className="hover:text-cream transition-colors">Syarat & Ketentuan</a>
-                <a href="#" className="hover:text-cream transition-colors">Kebijakan Privasi</a>
+            {/* Divider and Icons */}
+            <div className="w-full flex items-center justify-center mb-24 opacity-60">
+              <div className="flex-1 h-[1px] bg-white/20"></div>
+              <div className="flex justify-center">
+                <a href="#" className="flex items-center text-3xl hover:text-neon-pink transition-colors focus:outline-none">
+                  {/* Icon */}
+                  <i className="fa-brands fa-instagram"></i>
+
+                  {/* Text */}
+                  <span className="text-xl pl-2 font-bold tracking-[0.2em] uppercase">
+                    @SOUNDSAJANG
+                  </span>
+                </a>
               </div>
+              <div className="flex-1 h-[1px] bg-white/20"></div>
+            </div>
+
+            {/* Copyright */}
+            <div className="text-[13px] font-bold text-white/90 tracking-widest text-center">
+              © 2026 KLIXTICKET. ALL RIGHTS RESERVED.
             </div>
           </div>
         </footer>
 
-        {/* Cart Drawer Component */}
         <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       </div>
     </>

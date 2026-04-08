@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Flame, ArrowLeft, MapPin, Calendar, Ticket, Loader2, Sparkles, Clock, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, ShieldCheck, ShoppingCart, Loader2, Sparkles, AlertTriangle } from 'lucide-react';
 import { eventsApi, type Event } from '@/services/api';
 import { useCart } from '@/context/CartContext';
+import CartDrawer from '@/components/CartDrawer';
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('id-ID', {
-    weekday: 'long',
+  return new Date(dateStr).toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -14,7 +14,7 @@ function formatDate(dateStr: string) {
 }
 
 function formatTime(dateStr: string) {
-  return new Date(dateStr).toLocaleTimeString('id-ID', {
+  return new Date(dateStr).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -34,14 +34,14 @@ const EventDetailPage: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const { addToCart } = useCart();
+  const { addToCart, isCartOpen, setIsCartOpen } = useCart();
 
   useEffect(() => {
     if (!id) return;
     setIsLoading(true);
     eventsApi.getByID(Number(id))
       .then(setEvent)
-      .catch(err => setError(err instanceof Error ? err.message : 'Event tidak ditemukan'))
+      .catch(err => setError(err instanceof Error ? err.message : 'Event not found'))
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -54,277 +54,282 @@ const EventDetailPage: React.FC = () => {
       quantity: 1,
       image_url: event?.banner_url
     });
+    setIsCartOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-cream font-sans text-black selection:bg-discos selection:text-cream overflow-x-hidden">
-      {/* Navbar Refined */}
-      <nav className="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b-4 border-black">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2 group cursor-pointer relative z-10">
-            <Flame className="w-8 h-8 md:w-10 md:h-10 fill-salmon group-hover:scale-125 group-hover:rotate-12 transition-transform" />
-            <span className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-salmon">connected</span>
-          </Link>
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-white border-4 border-black px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-3 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Kembali
-          </button>
-        </div>
-      </nav>
-
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <Loader2 className="w-16 h-16 animate-spin text-salmon" />
-          <p className="font-black uppercase tracking-widest text-stanton">Memuat Event...</p>
-        </div>
-      )}
-
-      {/* Error */}
-      {!isLoading && error && (
-        <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-          <div className="inline-block p-6 bg-burgundy/10 border-4 border-burgundy rounded-[40px] mb-8">
-            <Sparkles className="w-16 h-16 text-burgundy mx-auto mb-4" />
-            <h2 className="text-5xl font-black uppercase tracking-tighter text-burgundy mb-4">MAAF YA!</h2>
-            <p className="text-xl font-bold text-stanton mb-0">{error}</p>
+    <>
+      <style>{`
+        .boxed-heading {
+          display: inline-block;
+          background: white;
+          color: black;
+          padding: 0 10px;
+          line-height: 1.1;
+        }
+        .text-outline {
+          -webkit-text-stroke: 1px white;
+          color: transparent;
+        }
+      `}</style>
+      <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-pink selection:text-white overflow-x-hidden">
+        {/* Navbar */}
+        <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-6 flex items-center justify-between">
+            <Link to="/" className="flex items-center space-x-2 group cursor-pointer relative z-10">
+              <span className="text-3xl md:text-5xl font-heading uppercase tracking-tighter text-white">
+                KLIX<span className="text-outline">TICKET</span>
+              </span>
+            </Link>
+            <button
+              onClick={() => navigate(-1)}
+              className="group flex items-center gap-3 text-white/50 hover:text-neon-cyan transition-colors font-bold uppercase tracking-[0.2em] text-sm"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-2 transition-transform" /> BACK TO LINEUP
+            </button>
           </div>
-          <br />
-          <Link
-            to="/"
-            className="inline-block bg-salmon text-cream border-4 border-black px-12 py-5 rounded-3xl text-2xl font-black uppercase tracking-tighter shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
-          >
-            BALIK KE HOME
-          </Link>
-        </div>
-      )}
+        </nav>
 
-      {/* Content */}
-      {!isLoading && event && (
-        <main className="pb-24">
-          {/* Hero Banner Section - Refined Ratio & Styling */}
-          <div className="relative w-full aspect-[16/9] md:aspect-[21/7] lg:aspect-[3/1] bg-black border-b-8 border-black overflow-hidden group">
-            {event.banner_url ? (
-              <img
-                src={event.banner_url}
-                alt={event.title}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-            ) : (
-              <div className="w-full h-full bg-stanton flex items-center justify-center">
-                <Flame className="w-32 h-32 text-cream/20 animate-pulse" />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
-              <div className="max-w-[1400px] mx-auto">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="bg-discos text-white px-4 py-1 rounded-full font-black text-xs uppercase border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-                    <Sparkles className="w-3 h-3" /> OFFICIAL EVENT
-                  </span>
-                  <span className="text-cream/60 font-bold uppercase tracking-widest text-[10px]">
-                    CON-EVT-{event.id}
-                  </span>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-neon-cyan">
+            <Loader2 className="w-16 h-16 animate-spin" />
+            <p className="font-heading text-3xl uppercase tracking-widest animate-pulse">LOADING STAGE...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && error && (
+          <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
+            <AlertTriangle className="w-24 h-24 text-neon-pink mb-8" />
+            <h2 className="text-6xl md:text-8xl font-heading uppercase tracking-tighter text-white mb-6">LINEUP <span className="text-outline">NOT FOUND</span></h2>
+            <p className="text-2xl font-bold text-white/50 mb-12 uppercase tracking-[0.2em]">{error}</p>
+            <Link to="/">
+              <button className="bg-white text-black px-12 py-6 font-heading text-3xl tracking-widest hover:bg-neon-pink hover:text-white transition-all transform hover:-rotate-2 uppercase">
+                RETURN TO MAP
+              </button>
+            </Link>
+          </div>
+        )}
+
+        {/* Content */}
+        {!isLoading && event && (
+          <main className="pb-40">
+            {/* Hero Banner Section */}
+            <div className="relative w-full aspect-[16/9] md:aspect-[21/7] lg:aspect-[3/1] bg-dark-grey border-b border-white/10 overflow-hidden group/img">
+              {event.banner_url ? (
+                <img
+                  src={event.banner_url}
+                  alt={event.title}
+                  className="w-full h-full object-cover transition-all duration-1000 grayscale group-hover/img:grayscale-0 group-hover/img:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full bg-dark-grey flex items-center justify-center opacity-10">
+                  <span className="text-[10rem] font-heading">🎵</span>
                 </div>
-                <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter text-cream leading-[0.85] mb-6 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                  {event.title}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-6 md:gap-10">
-                  <div className="flex items-center gap-3 text-cream/90">
-                    <Calendar className="w-6 h-6 text-salmon" />
-                    <span className="text-lg md:text-xl font-black uppercase tracking-tight">{formatDate(event.start_date)}</span>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+              
+              <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
+                <div className="max-w-[1400px] mx-auto">
+                  <div className="flex items-center gap-6 mb-6">
+                    <span className="text-neon-cyan font-bold tracking-[0.3em] text-sm block uppercase">
+                      OFFICIAL EVENT
+                    </span>
+                    <div className="w-12 h-[1px] bg-white/20"></div>
+                    <span className="text-white/30 font-bold uppercase tracking-[0.3em] text-xs">
+                      EVT-{event.id}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3 text-cream/90">
-                    <Clock className="w-6 h-6 text-salmon" />
-                    <span className="text-lg md:text-xl font-black uppercase tracking-tight">{formatTime(event.start_date)} – {formatTime(event.end_date)}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-cream/90">
-                    <MapPin className="w-6 h-6 text-salmon" />
-                    <span className="text-lg md:text-xl font-black uppercase tracking-tight">{event.location}</span>
+                  
+                  <h1 className="text-6xl md:text-9xl font-heading uppercase tracking-tighter text-white leading-[0.85] mb-10 drop-shadow-2xl">
+                    {event.title}
+                  </h1>
+                  
+                  <div className="flex flex-wrap items-center gap-10 md:gap-16">
+                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-cyan transition-colors">
+                      <Calendar className="w-6 h-6 md:w-8 md:h-8" />
+                      <span className="text-xl md:text-2xl font-bold uppercase tracking-[0.1em]">{formatDate(event.start_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-pink transition-colors">
+                      <Clock className="w-6 h-6 md:w-8 md:h-8" />
+                      <span className="text-xl md:text-2xl font-bold uppercase tracking-[0.1em]">{formatTime(event.start_date)} – {formatTime(event.end_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-yellow transition-colors">
+                      <MapPin className="w-6 h-6 md:w-8 md:h-8" />
+                      <span className="text-xl md:text-2xl font-bold uppercase tracking-[0.1em]">{event.location}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Details & Selection Grid */}
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8 -mt-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-              
-              {/* Left Column: Description */}
-              <div className="lg:col-span-8 flex flex-col gap-8">
-                <div className="bg-white border-4 border-black rounded-[40px] p-8 md:p-12 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-                  <h2 className="text-4xl font-black uppercase tracking-tighter text-stanton mb-8 flex items-center gap-4">
-                    <span className="w-12 h-12 bg-salmon rounded-2xl border-4 border-black flex items-center justify-center text-cream">?</span>
-                    TENTANG EVENT
-                  </h2>
-                  <div className="prose prose-2xl max-w-none">
-                    <p className="text-xl md:text-2xl text-stanton font-bold leading-relaxed whitespace-pre-line italic opacity-80 mb-8 border-l-8 border-discos pl-6">
-                      "{event.description}"
-                    </p>
+            {/* Details & Selection Grid */}
+            <div className="max-w-[1400px] mx-auto px-4 md:px-8 mt-20">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 md:gap-24">
+                
+                {/* Left Column: Description */}
+                <div className="lg:col-span-7 flex flex-col gap-16">
+                  <div>
+                    <h2 className="text-5xl md:text-7xl font-heading uppercase tracking-tighter text-white mb-8">
+                       EVENT <span className="text-outline">DETAILS</span>
+                    </h2>
+                    <div className="w-32 h-1 bg-neon-cyan mb-12"></div>
+                    
+                    <div className="text-xl md:text-2xl text-white/60 font-bold leading-relaxed whitespace-pre-line tracking-wide">
+                      {event.description}
+                    </div>
                   </div>
-                  
-                  {/* Additional Info Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                    <div className="bg-cream border-4 border-black p-6 rounded-3xl">
-                      <h4 className="font-black uppercase text-sm mb-3 text-salmon">Syarat & Ketentuan</h4>
-                      <ul className="text-sm font-bold text-stanton space-y-2 opacity-70">
-                        <li>• Minimal usia 18+ (KTP Wajib)</li>
-                        <li>• No drugs & Weapons allowed</li>
-                        <li>• Tiket tidak dapat direfund</li>
+
+                  {/* Info Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-white/10 pt-16">
+                    <div className="p-8 bg-dark-grey border border-white/5 hover:border-neon-pink transition-colors">
+                      <h4 className="font-heading uppercase text-3xl mb-6 text-white tracking-widest">RULES & T&C</h4>
+                      <ul className="text-sm font-bold text-white/50 space-y-4 tracking-[0.1em] uppercase">
+                        <li className="flex gap-4"><span className="text-neon-pink">/</span> MIN. AGE 18+ (ID REQUIRED)</li>
+                        <li className="flex gap-4"><span className="text-neon-pink">/</span> ZERO TOLERANCE DRUGS & WEAPONS</li>
+                        <li className="flex gap-4"><span className="text-neon-pink">/</span> STRICTLY NO REFUNDS</li>
                       </ul>
                     </div>
-                    <div className="bg-cream border-4 border-black p-6 rounded-3xl">
-                      <h4 className="font-black uppercase text-sm mb-3 text-discos">Fasilitas Event</h4>
-                      <ul className="text-sm font-bold text-stanton space-y-2 opacity-70">
-                        <li>• Exclusive Merch Store</li>
-                        <li>• Food & Beverages Area</li>
-                        <li>• First Aid Station</li>
+                    <div className="p-8 bg-dark-grey border border-white/5 hover:border-neon-cyan transition-colors">
+                      <h4 className="font-heading uppercase text-3xl mb-6 text-white tracking-widest">FACILITIES</h4>
+                      <ul className="text-sm font-bold text-white/50 space-y-4 tracking-[0.1em] uppercase">
+                        <li className="flex gap-4"><span className="text-neon-cyan">/</span> EXCLUSIVE MERCHANDISE</li>
+                        <li className="flex gap-4"><span className="text-neon-cyan">/</span> F&B DISTRICT</li>
+                        <li className="flex gap-4"><span className="text-neon-cyan">/</span> MEDICAL FIRST AID</li>
                       </ul>
+                    </div>
+                  </div>
+
+                  {/* Secure Payment Note */}
+                  <div className="mt-8 p-10 border border-white/10 flex items-center justify-between group hover:border-white/30 transition-colors">
+                    <div className="flex items-center gap-8">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-neon-yellow/10 transition-all">
+                        <ShieldCheck className="w-8 h-8 text-neon-yellow" />
+                      </div>
+                      <div>
+                        <p className="font-heading uppercase tracking-widest text-3xl mb-2">SECURE CHECKOUT</p>
+                        <p className="text-xs font-bold text-white/30 uppercase tracking-[0.2em]">INSTANT & ENCRYPTED PAYMENTS</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Secure Payment Note */}
-                <div className="bg-stanton text-cream border-4 border-black rounded-3xl p-6 flex items-center justify-between shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex items-center gap-4">
-                    <ShieldCheck className="w-10 h-10 text-salmon" />
-                    <div>
-                      <p className="font-black uppercase tracking-tighter text-xl leading-none">PEMBAYARAN AMAN</p>
-                      <p className="text-xs font-bold opacity-60 uppercase tracking-widest mt-1">Metode bayar otomatis & instan</p>
-                    </div>
-                  </div>
-                  <div className="hidden md:flex items-center gap-4 opacity-50 grayscale brightness-200">
-                     {/* Placeholder for payment icons */}
-                     <span className="text-xs font-black border-2 border-cream py-1 px-3 rounded-lg">VISA</span>
-                     <span className="text-xs font-black border-2 border-cream py-1 px-3 rounded-lg">BNI</span>
-                     <span className="text-xs font-black border-2 border-cream py-1 px-3 rounded-lg">QRIS</span>
-                  </div>
-                </div>
-              </div>
+                {/* Right Column: Ticket Selection */}
+                <div className="lg:col-span-5 relative mt-16 md:mt-0">
+                  <div className="sticky top-40 bg-black border border-white/10 p-10 md:p-14">
+                    <h2 className="text-5xl md:text-6xl font-heading uppercase tracking-tighter text-white mb-12 flex items-center justify-between">
+                       TICKETS
+                       <span className="w-3 h-3 bg-neon-pink rounded-full animate-pulse"></span>
+                    </h2>
 
-              {/* Right Column: Ticket Selection */}
-              <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
-                <div className="bg-discos text-white border-4 border-black rounded-[40px] p-8 md:p-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-                  <h2 className="text-4xl font-black uppercase tracking-tighter text-white mb-8 border-b-4 border-white pb-6">
-                    PILIH TIKET
-                  </h2>
+                    {event.ticket_types && event.ticket_types.length > 0 ? (
+                      <div className="flex flex-col gap-6">
+                        {event.ticket_types.map(ticket => {
+                          const isSoldOut = ticket.remaining_quota === 0;
+                          const isAvailable = ticket.active_status && !isSoldOut;
+                          const isPresale = ticket.name.toLowerCase().includes('presale');
 
-                  {event.ticket_types && event.ticket_types.length > 0 ? (
-                    <div className="flex flex-col gap-8">
-                      {event.ticket_types.map(ticket => {
-                        const isSoldOut = ticket.remaining_quota === 0;
-                        const isAvailable = ticket.active_status && !isSoldOut;
-                        const isPresale = ticket.name.toLowerCase().includes('presale');
+                          return (
+                            <div
+                              key={ticket.id}
+                              className={`group relative bg-dark-grey border border-white/5 p-8 transition-all ${
+                                isAvailable ? 'hover:border-neon-cyan cursor-pointer' : 'opacity-40 grayscale'
+                              }`}
+                            >
+                              {isSoldOut && (
+                                <div className="absolute top-0 right-0 bg-neon-pink text-white px-8 py-2 font-heading text-xl uppercase tracking-widest">
+                                  SOLD OUT
+                                </div>
+                              )}
 
-                        return (
-                          <div
-                            key={ticket.id}
-                            className={`group bg-white border-4 border-black rounded-[32px] p-6 relative transition-all ${
-                              isAvailable
-                                ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
-                                : 'opacity-60 grayscale'
-                            }`}
-                          >
-                            {isSoldOut && (
-                              <div className="absolute top-4 right-[-24px] bg-burgundy text-white px-8 py-1 rotate-45 font-black text-[10px] border-2 border-black z-20">
-                                SOLD OUT
-                              </div>
-                            )}
+                              {isPresale && isAvailable && (
+                                <div className="absolute top-0 left-0 bg-neon-pink text-white px-4 py-1 flex items-center gap-2 font-heading text-sm uppercase tracking-widest">
+                                  <Sparkles className="w-3 h-3" /> HOT DEAL
+                                </div>
+                              )}
 
-                            {isPresale && isAvailable && (
-                              <div className="absolute top-0 right-6 -translate-y-1/2 bg-salmon text-white px-3 py-1 rounded-lg border-2 border-black font-black text-[10px] uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                HOT DEAL 🔥
-                              </div>
-                            )}
-
-                            <div className="flex flex-col gap-4">
-                              <div>
-                                <h3 className="text-2xl font-black uppercase tracking-tighter text-stanton mb-1 flex items-center gap-2">
+                              <div className="mt-4">
+                                <h3 className="text-3xl font-heading uppercase tracking-widest text-white mb-2">
                                   {ticket.name}
-                                  {isPresale && <Sparkles className="w-5 h-5 text-salmon" />}
                                 </h3>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                  {ticket.description || 'Akses eksklusif untuk satu hari'}
+                                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 mb-8 max-w-[80%] line-clamp-2">
+                                  {ticket.description || 'General Admission 1-Day Pass'}
                                 </p>
-                              </div>
 
-                              <div className="flex flex-col">
-                                {isPresale && (
-                                  <span className="text-xs font-bold text-gray-400 line-through decoration-burgundy decoration-2">
-                                     {formatPrice(ticket.price * 1.5)}
-                                  </span>
-                                )}
-                                <div className="text-4xl font-black tracking-tighter text-discos">
-                                  {formatPrice(ticket.price)}
-                                </div>
-                              </div>
-
-                              <div className="pt-4 border-t-2 border-dashed border-gray-200">
-                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
-                                  <Ticket className="w-4 h-4 text-salmon" />
-                                  <span>Tersedia: {ticket.remaining_quota} Tiket</span>
-                                </div>
-                                
-                                <div className="grid grid-cols-1 gap-3">
-                                  <button
-                                    disabled={!isAvailable}
-                                    onClick={() => {
-                                      const params = new URLSearchParams();
-                                      params.set('ticketId', String(ticket.id));
-                                      params.set('name', `${event.title} - ${ticket.name}`);
-                                      params.set('price', String(ticket.price));
-                                      navigate(`/checkout?${params.toString()}`);
-                                    }}
-                                    className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-tight border-4 border-black transition-all ${
-                                      isAvailable
-                                        ? 'bg-salmon text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
-                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                                    }`}
-                                  >
-                                    {isSoldOut ? 'HABIS TERJUAL' : 'BELI SEKARANG'}
-                                  </button>
-                                  
-                                  {!isSoldOut && isAvailable && (
-                                    <button
-                                      onClick={() => handleAddTicket(ticket)}
-                                      className="w-full py-3 rounded-xl text-sm font-black uppercase tracking-tight border-4 border-black bg-white text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2"
-                                    >
-                                      <ShoppingCart className="w-4 h-4" /> Tambah ke Keranjang
-                                    </button>
+                                <div className="flex flex-col mb-10">
+                                  {isPresale && (
+                                    <span className="text-sm font-bold text-white/30 line-through tracking-[0.1em] mb-1">
+                                       {formatPrice(ticket.price * 1.5)}
+                                    </span>
                                   )}
+                                  <div className="text-5xl font-heading tracking-tighter text-white">
+                                    {formatPrice(ticket.price)}
+                                  </div>
+                                </div>
+
+                                <div className="border-t border-white/10 pt-8 mt-auto">
+                                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-neon-cyan mb-8">
+                                    <ShoppingCart className="w-4 h-4" />
+                                    <span>AVAILABLE: {ticket.remaining_quota}</span>
+                                  </div>
+                                  
+                                  <div className="flex flex-col gap-4">
+                                    <button
+                                      disabled={!isAvailable}
+                                      onClick={() => {
+                                        const params = new URLSearchParams();
+                                        params.set('ticketId', String(ticket.id));
+                                        params.set('name', `${event.title} - ${ticket.name}`);
+                                        params.set('price', String(ticket.price));
+                                        navigate(`/checkout?${params.toString()}`);
+                                      }}
+                                      className={`w-full py-5 font-heading text-2xl uppercase tracking-widest transition-all ${
+                                        isAvailable
+                                          ? 'bg-white text-black hover:bg-neon-pink hover:text-white'
+                                          : 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
+                                      }`}
+                                    >
+                                      {isSoldOut ? 'UNAVAILABLE' : 'GET TICKETS'}
+                                    </button>
+                                    
+                                    {!isSoldOut && isAvailable && (
+                                      <button
+                                        onClick={() => handleAddTicket(ticket)}
+                                        className="w-full py-4 border border-white/20 text-white/70 font-heading text-xl uppercase tracking-widest hover:border-white hover:text-white transition-all"
+                                      >
+                                        ADD TO CART
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 bg-white/10 rounded-3xl border-4 border-dashed border-white/20">
-                      <Sparkles className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                      <p className="text-white/60 font-black uppercase tracking-widest text-xs">
-                        Tiket Belum Tersedia
-                      </p>
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-20 bg-dark-grey border border-white/5">
+                        <span className="text-6xl mb-6 block opacity-20">🎫</span>
+                        <p className="text-white/40 font-heading text-2xl uppercase tracking-widest">
+                          TICKETS TBA
+                        </p>
+                      </div>
+                    )}
 
-                  {/* Trust indicator in sidebar */}
-                  <div className="mt-10 flex items-center justify-center gap-4 opacity-40">
-                    <Flame className="w-6 h-6 text-white" />
-                    <span className="h-6 w-[2px] bg-white"></span>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white">GENUINE TICKETING SYSTEM</p>
+                    <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center justify-center gap-4 opacity-30">
+                      <span className="text-5xl font-heading tracking-tighter uppercase">KLIX<span className="text-outline">TICKET</span></span>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white">AUTHORIZED TICKETING PARTNER</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </main>
-      )}
-    </div>
+          </main>
+        )}
+        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      </div>
+    </>
   );
 };
 

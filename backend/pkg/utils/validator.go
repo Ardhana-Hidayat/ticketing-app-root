@@ -34,6 +34,10 @@ func FormatValidationError(err error) map[string]string {
 				errors[field] = fmt.Sprintf("Kolom %s minimal %s karakter", field, fe.Param())
 			case "max":
 				errors[field] = fmt.Sprintf("Kolom %s maksimal %s karakter", field, fe.Param())
+			case "gt":
+				errors[field] = fmt.Sprintf("Kolom %s harus lebih besar dari %s", field, fe.Param())
+			case "gte":
+				errors[field] = fmt.Sprintf("Kolom %s minimal bernilai %s", field, fe.Param())
 			case "eqfield":
 				errors[field] = fmt.Sprintf("Kolom %s harus sama dengan %s", field, fe.Param())
 			default:

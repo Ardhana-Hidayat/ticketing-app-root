@@ -133,7 +133,7 @@ func (s *merchandiseService) CreateMerchandise(ctx context.Context, req dto.Crea
 		Slug:         generateMerchandiseSlug(req.Name),
 		Description:  strings.TrimSpace(req.Description),
 		Price:        req.Price,
-		Stock:        req.Stock,
+		Stock:        *req.Stock,
 		ImageURL:     normalizeOptionalMerchString(req.ImageURL),
 		ActiveStatus: activeStatus,
 	}
@@ -170,7 +170,7 @@ func (s *merchandiseService) UpdateMerchandise(ctx context.Context, id uint, req
 	merchandise.Name = strings.TrimSpace(req.Name)
 	merchandise.Description = strings.TrimSpace(req.Description)
 	merchandise.Price = req.Price
-	merchandise.Stock = req.Stock
+	merchandise.Stock = *req.Stock
 	if req.ImageURL != nil {
 		merchandise.ImageURL = normalizeOptionalMerchString(req.ImageURL)
 	}

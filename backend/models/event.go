@@ -28,7 +28,7 @@ type TicketType struct {
 	Name           string         `gorm:"type:varchar(100);not null;uniqueIndex:idx_ticket_types_event_name" json:"name"`
 	Description    string         `gorm:"type:text" json:"description"`
 	Price          float64        `gorm:"type:decimal(12,2);not null" json:"price"`
-	Quota          int            `gorm:"not null;check:quota > 0" json:"quota"`
+	Quota          int            `gorm:"not null;check:quota >= 0" json:"quota"`
 	RemainingQuota int            `gorm:"not null;check:remaining_quota >= 0" json:"remaining_quota"`
 	SalesStartAt   time.Time      `gorm:"not null;index" json:"sales_start_at"`
 	SalesEndAt     time.Time      `gorm:"not null;index" json:"sales_end_at"`

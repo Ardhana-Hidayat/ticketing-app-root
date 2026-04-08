@@ -53,7 +53,14 @@ const CreateMerch: React.FC = () => {
       navigate('/admin/merchandise');
     } catch (error) {
        console.error("Failed to create merchandise", error);
-       alert("Failed to create merchandise. Try again.");
+       if (error instanceof Error && 'errors' in error) {
+         const errorMsgs = Object.entries((error as any).errors || {})
+           .map(([field, msg]) => `${field}: ${msg}`)
+           .join('\n');
+         alert(`Input tidak valid:\n${errorMsgs}`);
+       } else {
+         alert("Failed to create merchandise. Try again.");
+       }
     } finally {
       setLoading(false);
     }

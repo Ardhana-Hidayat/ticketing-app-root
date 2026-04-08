@@ -275,6 +275,10 @@ func cloneOptionalString(value *string) *string {
 	return &cloned
 }
 
+func intPtr(v int) *int {
+	return &v
+}
+
 func cloneTicket(ticket *models.TicketType) *models.TicketType {
 	if ticket == nil {
 		return nil
@@ -481,7 +485,7 @@ func TestMerchandiseServiceUpdateMerchandise_PreservesImageURLWhenRequestOmitted
 		Name:         "Hoodie",
 		Description:  "Updated merch",
 		Price:        200000,
-		Stock:        15,
+		Stock:        intPtr(15),
 		ActiveStatus: &activeStatus,
 	})
 	if err != nil {

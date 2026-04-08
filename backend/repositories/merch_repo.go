@@ -48,7 +48,6 @@ func (r *merchandiseRepository) FindAllActive(ctx context.Context, limit, offset
 
 	err := merchandiseSelectColumns(r.db.WithContext(ctx)).
 		Where("active_status = ?", true).
-		Where("stock > 0").
 		Order("created_at desc").
 		Limit(limit).
 		Offset(offset).

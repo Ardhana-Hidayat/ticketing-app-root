@@ -35,7 +35,7 @@ type CreateTicketRequest struct {
 	Name         string    `json:"name" binding:"required,min=2"`
 	Description  string    `json:"description"`
 	Price        float64   `json:"price" binding:"required,gt=0"`
-	Quota        int       `json:"quota" binding:"required,gt=0"`
+	Quota        *int      `json:"quota" binding:"required,gte=0"`
 	SalesStartAt time.Time `json:"sales_start_at" binding:"required"`
 	SalesEndAt   time.Time `json:"sales_end_at" binding:"required"`
 	ActiveStatus *bool     `json:"active_status"`
@@ -50,7 +50,7 @@ type UpsertTicketRequest struct {
 	Name         string    `json:"name" binding:"required,min=2"`
 	Description  string    `json:"description"`
 	Price        float64   `json:"price" binding:"required,gt=0"`
-	Quota        int       `json:"quota" binding:"required,gt=0"`
+	Quota        *int      `json:"quota" binding:"required,gte=0"`
 	SalesStartAt time.Time `json:"sales_start_at" binding:"required"`
 	SalesEndAt   time.Time `json:"sales_end_at" binding:"required"`
 	ActiveStatus *bool     `json:"active_status"`

@@ -38,7 +38,7 @@ func parseRequiredInt(value string) (int, error) {
 }
 
 func parseRequiredTime(value string) (time.Time, error) {
-	return time.Parse(time.RFC3339, strings.TrimSpace(value))
+	return time.Parse(time.RFC3339Nano, strings.TrimSpace(value))
 }
 
 func validateStructPayload(payload any) error {
@@ -197,7 +197,7 @@ func bindCreateMerchandiseRequest(c *gin.Context) (dto.CreateMerchandiseRequest,
 			Name:         strings.TrimSpace(c.PostForm("name")),
 			Description:  strings.TrimSpace(c.PostForm("description")),
 			Price:        price,
-			Stock:        stock,
+			Stock:        &stock,
 			ImageURL:     imageURL,
 			ActiveStatus: activeStatus,
 		}
@@ -254,7 +254,7 @@ func bindUpdateMerchandiseRequest(c *gin.Context) (dto.UpdateMerchandiseRequest,
 			Name:         strings.TrimSpace(c.PostForm("name")),
 			Description:  strings.TrimSpace(c.PostForm("description")),
 			Price:        price,
-			Stock:        stock,
+			Stock:        &stock,
 			ImageURL:     imageURL,
 			ActiveStatus: activeStatus,
 		}

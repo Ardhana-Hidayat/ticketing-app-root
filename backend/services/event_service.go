@@ -203,8 +203,8 @@ func buildTicketModel(eventID uint, req dto.CreateTicketRequest) models.TicketTy
 		Name:           strings.TrimSpace(req.Name),
 		Description:    strings.TrimSpace(req.Description),
 		Price:          req.Price,
-		Quota:          req.Quota,
-		RemainingQuota: req.Quota,
+		Quota:          *req.Quota,
+		RemainingQuota: *req.Quota,
 		SalesStartAt:   req.SalesStartAt,
 		SalesEndAt:     req.SalesEndAt,
 		ActiveStatus:   activeStatus,
@@ -222,8 +222,8 @@ func buildUpsertTicketModel(eventID uint, req dto.UpsertTicketRequest) models.Ti
 		Name:           strings.TrimSpace(req.Name),
 		Description:    strings.TrimSpace(req.Description),
 		Price:          req.Price,
-		Quota:          req.Quota,
-		RemainingQuota: req.Quota,
+		Quota:          *req.Quota,
+		RemainingQuota: *req.Quota,
 		SalesStartAt:   req.SalesStartAt,
 		SalesEndAt:     req.SalesEndAt,
 		ActiveStatus:   activeStatus,
@@ -447,7 +447,7 @@ func (s *eventService) UpdateEvent(ctx context.Context, id uint, req dto.UpdateE
 			}
 
 			soldQuantity := existingTicket.Quota - existingTicket.RemainingQuota
-			if ticketReq.Quota < soldQuantity {
+			if *ticketReq.Quota < soldQuantity {
 				tx.Rollback()
 				return nil, fmt.Errorf("%w: %s", ErrTicketQuotaBelowSold, existingTicket.Name)
 			}
@@ -460,8 +460,8 @@ func (s *eventService) UpdateEvent(ctx context.Context, id uint, req dto.UpdateE
 			existingTicket.Name = strings.TrimSpace(ticketReq.Name)
 			existingTicket.Description = strings.TrimSpace(ticketReq.Description)
 			existingTicket.Price = ticketReq.Price
-			existingTicket.Quota = ticketReq.Quota
-			existingTicket.RemainingQuota = ticketReq.Quota - soldQuantity
+			existingTicket.Quota = *ticketReq.Quota
+			existingTicket.RemainingQuota = *ticketReq.Quota - soldQuantity
 			existingTicket.SalesStartAt = ticketReq.SalesStartAt
 			existingTicket.SalesEndAt = ticketReq.SalesEndAt
 			existingTicket.ActiveStatus = activeStatus
