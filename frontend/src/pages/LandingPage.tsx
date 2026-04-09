@@ -1,5 +1,6 @@
 // Icons provided by FontAwesome CDN in index.html
 import { eventsApi, merchandiseApi, authApi, type Event, type Merchandise } from '@/services/api';
+import { formatImageURL } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
 import { useState, useEffect, useRef } from 'react';
@@ -403,11 +404,12 @@ const LandingPage: React.FC = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         <div className="aspect-[3/4] bg-black border border-white/5 overflow-hidden relative group/img">
-                          {closestEvent.banner_url ? (
-                            <img src={closestEvent.banner_url} alt={closestEvent.title} className="w-full h-full object-cover transition-all duration-1000 group-hover/img:scale-110 grayscale group-hover/img:grayscale-0" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-dark-grey text-white/5 text-9xl font-heading">?</div>
-                          )}
+                          <img 
+                            src={formatImageURL(closestEvent.banner_url)} 
+                            alt={closestEvent.title} 
+                            className="w-full h-full object-cover transition-all duration-1000 group-hover/img:scale-110 grayscale group-hover/img:grayscale-0" 
+                            onError={(e) => (e.currentTarget.src = "/fallback.png")}
+                          />
                         </div>
 
                         <div className="flex flex-col h-full justify-between">
@@ -475,13 +477,12 @@ const LandingPage: React.FC = () => {
               {apiMerch.slice(0, 4).map(item => (
                 <Link to={`/merchandise/${item.id}`} key={item.id} className="group cursor-pointer">
                   <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-yellow group-hover:-translate-y-2">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" />
-                    ) : (
-                      <div className="w-full h-full bg-dark-grey flex items-center justify-center opacity-10">
-                        <i className="fa-solid fa-cart-shopping text-6xl"></i>
-                      </div>
-                    )}
+                    <img 
+                      src={formatImageURL(item.image_url)} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" 
+                      onError={(e) => (e.currentTarget.src = "/fallback.png")}
+                    />
                   </div>
                   <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-yellow transition-colors uppercase line-clamp-1">{item.name}</h3>
                   <p className="text-2xl font-heading text-white/40 mt-2 tracking-tighter">{formatPrice(item.price)}</p>
@@ -555,13 +556,12 @@ const LandingPage: React.FC = () => {
                 !eventsLoading && [...apiEvents, ...apiEvents].map((item, index) => (
                   <Link to={`/event/${item.id}`} key={`${item.id}-${index}`} className="group cursor-pointer w-[450px] md:w-[700px] flex-shrink-0" onDragStart={(e) => e.preventDefault()}>
                     <div className="relative w-full aspect-[16/9] bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-cyan group-hover:-translate-y-2">
-                      {item.banner_url ? (
-                        <img src={item.banner_url} alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 pointer-events-none" />
-                      ) : (
-                        <div className="w-full h-full bg-dark-grey flex items-center justify-center opacity-10">
-                          <span className="text-9xl font-heading">🎵</span>
-                        </div>
-                      )}
+                      <img 
+                        src={formatImageURL(item.banner_url)} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 pointer-events-none" 
+                        onError={(e) => (e.currentTarget.src = "/fallback.png")}
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-10">
                         <span className="text-neon-cyan font-bold tracking-[0.6em] text-sm flex items-center gap-3 uppercase">
                           EXPLORE LINEUP <i className="fa-solid fa-arrow-right text-xl"></i>

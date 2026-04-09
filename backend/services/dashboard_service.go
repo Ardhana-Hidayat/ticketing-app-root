@@ -16,19 +16,22 @@ type DashboardService interface {
 type dashboardService struct {
 	orderRepo repositories.OrderRepository
 	eventRepo repositories.EventRepository
+	merchRepo repositories.MerchandiseRepository
 }
 
-func NewDashboardService(orderRepo repositories.OrderRepository, eventRepo repositories.EventRepository) DashboardService {
+func NewDashboardService(
+	orderRepo repositories.OrderRepository,
+	eventRepo repositories.EventRepository,
+	merchRepo repositories.MerchandiseRepository,
+) DashboardService {
 	return &dashboardService{
 		orderRepo: orderRepo,
 		eventRepo: eventRepo,
+		merchRepo: merchRepo,
 	}
 }
 
 func (s *dashboardService) GetSummary(ctx context.Context) (*dto.DashboardSummaryResponse, error) {
-	ctx, cancel := withOrderTimeout(ctx)
-	defer cancel()
-
 	revenue, err := s.orderRepo.GetPaidRevenueSummary(ctx)
 	if err != nil {
 		return nil, err
@@ -41,20 +44,29 @@ func (s *dashboardService) GetSummary(ctx context.Context) (*dto.DashboardSummar
 
 	activeEvents, err := s.eventRepo.CountActivePublished(ctx, time.Now())
 	if err != nil {
-		return nil, err
+		activeEvents = 0
+	}
+
+	totalOrders, err := s.orderRepo.CountAll(ctx)
+	if err != nil {
+		totalOrders = 0
+	}
+
+	totalMerch, err := s.merchRepo.Count(ctx)
+	if err != nil {
+		totalMerch = 0
 	}
 
 	return &dto.DashboardSummaryResponse{
-		Revenue:      revenue,
-		TicketsSold:  ticketsSold,
-		ActiveEvents: activeEvents,
+		Revenue:          revenue,
+		TicketsSold:      ticketsSold,
+		ActiveEvents:     activeEvents,
+		TotalOrders:      totalOrders,
+		TotalMerchandise: totalMerch,
 	}, nil
 }
 
 func (s *dashboardService) GetSalesChart(ctx context.Context) ([]dto.SalesChartPoint, error) {
-	ctx, cancel := withOrderTimeout(ctx)
-	defer cancel()
-
 	now := time.Now()
 	endDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	startDate := endDate.AddDate(0, 0, -6)

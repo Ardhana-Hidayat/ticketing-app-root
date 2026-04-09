@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, ShoppingCart, LogOut, Menu, X, Ticket, Package } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LayoutDashboard, LogOut, Menu, X, CalendarDays, ShoppingCart, Package } from 'lucide-react';
 import { authApi } from '@/services/api';
+import logoImg from '@/assets/images/klix-logo.webp';
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,23 +11,20 @@ const AdminLayout: React.FC = () => {
   const user = authApi.getUser();
 
   useEffect(() => {
-    // Check if logged in
     if (!authApi.isLoggedIn()) {
       navigate('/login');
       return;
     }
-    
-    // Check if admin
     if (user?.role !== 'admin') {
       navigate('/');
     }
   }, [user, navigate]);
 
   const navLinks = [
-    { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { path: '/admin/events', name: 'Events', icon: <CalendarDays className="w-5 h-5" /> },
-    { path: '/admin/merchandise', name: 'Merchandise', icon: <Package className="w-5 h-5" /> },
-    { path: '/admin/orders', name: 'Orders', icon: <ShoppingCart className="w-5 h-5" /> },
+    { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+    { path: '/admin/events', name: 'Events', icon: <CalendarDays size={18} /> },
+    { path: '/admin/merchandise', name: 'Merchandise', icon: <Package size={18} /> },
+    { path: '/admin/orders', name: 'Orders', icon: <ShoppingCart size={18} /> },
   ];
 
   const handleLogout = () => {
@@ -37,87 +33,103 @@ const AdminLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 font-sans flex">
+    <div className="h-screen bg-slate-50/30 text-slate-900 font-sans flex overflow-hidden">
+      {/* Mobile Toggle Button */}
+      <button 
+        onClick={() => setSidebarOpen(true)}
+        className="lg:hidden fixed bottom-8 right-8 z-[60] w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-2xl hover:bg-indigo-700 active:scale-95 transition-all"
+      >
+        <Menu size={24} />
+      </button>
+
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 w-64 bg-background border-r border-border z-50 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} flex flex-col`}>
-        <div className="h-16 flex items-center px-6 border-b border-border">
-          <Link to="/" className="flex items-center space-x-2">
-             <Ticket className="w-5 h-5" />
-             <span className="text-xl font-bold tracking-tight">mastutik.</span>
+      <aside className={`fixed lg:static inset-y-0 left-0 w-72 bg-white border-r border-slate-100 z-50 transform transition-transform duration-500 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} flex flex-col shadow-2xl lg:shadow-none`}>
+        {/* Branding */}
+        <div className="h-24 flex items-center px-8">
+          <Link to="/" className="flex items-center gap-3 active:scale-95 transition-transform">
+             <div className="w-10 h-10 bg-indigo-600 flex items-center justify-center rounded-xl shadow-lg shadow-indigo-600/20">
+                <img src={logoImg} alt="Klix" className="w-6 h-6 object-contain invert" />
+             </div>
+             <div>
+                <span className="text-xl font-bold tracking-tight text-slate-900 leading-none block">Klix<span className="text-indigo-600">Ticket</span></span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Admin Control</span>
+             </div>
           </Link>
-          <Button variant="ghost" size="icon" className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X className="w-5 h-5" />
-          </Button>
+          <button className="lg:hidden ml-auto p-2 text-slate-400 hover:text-slate-900 transition-colors" onClick={() => setSidebarOpen(false)}>
+             <X size={20} />
+          </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-1">
+          <p className="px-4 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">General Hub</p>
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path || (link.path !== '/admin' && location.pathname.startsWith(link.path));
             return (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-md transition-colors text-sm font-medium ${
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all font-bold text-sm ${
                   isActive 
-                    ? 'bg-secondary text-foreground' 
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                {link.icon}
-                <span>{link.name}</span>
+                <div className={`${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'}`}>
+                  {link.icon}
+                </div>
+                {link.name}
+                {isActive && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white/40" />
+                )}
               </Link>
-            )
+            );
           })}
         </div>
 
-        <div className="p-4 border-t border-border">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            onClick={handleLogout}
-          >
-             <LogOut className="w-5 h-5 mr-3" />
-             Logout
-          </Button>
+        {/* User Stats/Shortcuts placeholder */}
+        <div className="px-6 py-4">
+           <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">System Load</p>
+              <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                 <div className="h-full bg-indigo-500 rounded-full transition-all" style={{width: '24%'}} />
+              </div>
+           </div>
+        </div>
+
+        {/* User Card */}
+        <div className="p-6 border-t border-slate-50">
+           <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-indigo-600 font-bold shadow-sm">
+                 {user?.name?.substring(0, 1).toUpperCase() || 'A'}
+              </div>
+              <div className="min-w-0 pr-2">
+                 <p className="text-xs font-bold text-slate-900 truncate uppercase tracking-tight">{user?.name || 'Admin User'}</p>
+                 <p className="text-[10px] text-slate-400 font-medium truncate">{user?.email}</p>
+              </div>
+           </div>
+           
+           <button 
+             onClick={handleLogout}
+             className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
+           >
+              <LogOut size={14} />
+              Sign Out
+           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-            <Menu className="w-5 h-5" />
-          </Button>
-          
-          <div className="hidden lg:block">
-             <h2 className="text-sm font-medium text-muted-foreground">Admin Workspace</h2>
-          </div>
-
-          <div className="ml-auto flex items-center space-x-4">
-            <div className="flex items-center space-x-3 pl-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium leading-none">{user?.name || 'Admin User'}</p>
-                <p className="text-xs text-muted-foreground mt-1">{user?.email || 'admin@mastutik.com'}</p>
-              </div>
-              <Avatar>
-                <AvatarImage src={user?.avatar_url || "https://github.com/shadcn.png"} />
-                <AvatarFallback>{user?.name?.substring(0, 2).toUpperCase() || 'AD'}</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-        </header>
-
-        {/* Dashboard Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <div className="flex-1 overflow-y-auto p-6 lg:p-14 custom-scrollbar">
           <Outlet />
         </div>
       </main>

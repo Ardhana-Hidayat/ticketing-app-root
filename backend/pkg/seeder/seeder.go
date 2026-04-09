@@ -118,8 +118,7 @@ func SeedEvents(db *gorm.DB) error {
 			BannerURL:     ptr("https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=1200"),
 			PublishStatus: "published",
 			TicketTypes: []models.TicketType{
-				{Name: "Presale 1", Price: 250000, Quota: 300, RemainingQuota: 0, SalesStartAt: now.AddDate(0, -3, 0), SalesEndAt: now.AddDate(0, -1, 0), ActiveStatus: false},
-				{Name: "Presale 2", Price: 450000, Quota: 500, RemainingQuota: 124, SalesStartAt: now.AddDate(0, -1, 0), SalesEndAt: now.AddDate(0, 5, 0), ActiveStatus: true},
+				{Name: "General Admission", Price: 350000, Quota: 800, RemainingQuota: 450, SalesStartAt: now.AddDate(0, -1, 0), SalesEndAt: now.AddDate(0, 5, 0), ActiveStatus: true},
 			},
 		},
 		{
@@ -132,8 +131,7 @@ func SeedEvents(db *gorm.DB) error {
 			BannerURL:     ptr("https://images.unsplash.com/photo-1540039155732-684735035727?auto=format&fit=crop&q=80&w=1200"),
 			PublishStatus: "published",
 			TicketTypes: []models.TicketType{
-				{Name: "Presale 1", Price: 150000, Quota: 200, RemainingQuota: 0, SalesStartAt: now.AddDate(0, -2, 0), SalesEndAt: now.AddDate(0, -1, 0), ActiveStatus: false},
-				{Name: "Presale 2", Price: 300000, Quota: 300, RemainingQuota: 45, SalesStartAt: now.AddDate(0, -1, 0), SalesEndAt: now.AddDate(0, 5, 0), ActiveStatus: true},
+				{Name: "Early Access", Price: 250000, Quota: 500, RemainingQuota: 200, SalesStartAt: now.AddDate(0, -1, 0), SalesEndAt: now.AddDate(0, 5, 0), ActiveStatus: true},
 			},
 		},
 		{

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { adminApi } from '@/services/api';
+import { formatImageURL } from '@/lib/utils';
 import { 
   ArrowLeft, 
   Plus, 
@@ -14,14 +15,16 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
-  Type,
-  FileText
+  FileEdit,
+  Type
 } from 'lucide-react';
 import { RequestError } from '@/lib/api-client';
 
-const CreateEvent: React.FC = () => {
+const UpdateEvent: React.FC = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
   
@@ -36,13 +39,52 @@ const CreateEvent: React.FC = () => {
     end_date: '',
   });
 
-  const [ticketTiers, setTicketTiers] = useState([
-    { name: 'General Admission', description: 'Standard entry access', price: '', quota: '', sales_start_at: '', sales_end_at: '' }
-  ]);
+  const [ticketTiers, setTicketTiers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (id) {
+       fetchEvent(parseInt(id));
+    }
+  }, [id]);
+
+  const fetchEvent = async (eventId: number) => {
+    try {
+      const res: any = await adminApi.getEventById(eventId);
+      const data = res;
+      
+      setEventData({
+        title: data.title || '',
+        description: data.description || '',
+        location: data.location || '',
+        start_date: data.start_date ? new Date(data.start_date).toISOString().slice(0, 16) : '',
+        end_date: data.end_date ? new Date(data.end_date).toISOString().slice(0, 16) : '',
+      });
+
+      if (data.banner_url) {
+        setPreviewUrl(formatImageURL(data.banner_url));
+      }
+
+      if (data.ticket_types) {
+        setTicketTiers(data.ticket_types.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description || '',
+          price: t.price,
+          quota: t.quota,
+          sales_start_at: t.sales_start_at ? new Date(t.sales_start_at).toISOString().slice(0, 16) : '',
+          sales_end_at: t.sales_end_at ? new Date(t.sales_end_at).toISOString().slice(0, 16) : '',
+        })));
+      }
+    } catch (err: any) {
+      setGeneralError('Failed to access event records. Return to manifest.');
+      setTimeout(() => navigate('/admin/events'), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEventChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setEventData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    // Clear error for that field
     if (fieldErrors[e.target.name]) {
        const newErrors = { ...fieldErrors };
        delete newErrors[e.target.name];
@@ -71,7 +113,7 @@ const CreateEvent: React.FC = () => {
       const file = e.target.files[0];
       setBannerFile(file);
       setPreviewUrl(URL.createObjectURL(file));
-       if (fieldErrors['banner']) {
+      if (fieldErrors['banner']) {
           const newErrors = { ...fieldErrors };
           delete newErrors['banner'];
           setFieldErrors(newErrors);
@@ -80,17 +122,14 @@ const CreateEvent: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (!id) return;
     setFieldErrors({});
     setGeneralError('');
-
-    if (!eventData.title || !eventData.location || !eventData.start_date || !eventData.end_date) {
-      setGeneralError("Please fill in all mandatory event identification markers.");
-      return;
-    }
+    setSaving(true);
     
-    setLoading(true);
     try {
       const ticketTypes = ticketTiers.map(t => ({
+        id: t.id,
         name: t.name,
         description: t.description,
         price: Number(t.price),
@@ -113,22 +152,31 @@ const CreateEvent: React.FC = () => {
         formData.append('banner', bannerFile);
       }
 
-      await adminApi.createEvent(formData);
+      await adminApi.updateEvent(parseInt(id), formData);
       navigate('/admin/events');
     } catch (err: any) {
       if (err instanceof RequestError && err.errors) {
         setFieldErrors(err.errors);
-        setGeneralError('Validation failed. Please correct the highlighted nodes.');
+        setGeneralError('Validation mismatch. Correct the highlighted parameters.');
       } else {
-        setGeneralError(err.message || 'The system failed to initialize this event node.');
+        setGeneralError(err.message || 'System error while updating event node.');
       }
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 animate-pulse">
+        <Loader2 className="animate-spin text-indigo-600 w-12 h-12 mb-6" />
+        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Accessing Database Manifest...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 pb-32 animate-in fade-in duration-1000">
+    <div className="space-y-8 pb-32 animate-in fade-in duration-700">
       
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white border border-slate-100 p-8 rounded-3xl shadow-sm">
@@ -136,32 +184,31 @@ const CreateEvent: React.FC = () => {
             <button 
               onClick={() => navigate('/admin/events')}
               className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all group"
-              title="Return to Events"
             >
                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             </button>
             <div>
                <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Node Configuration</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Record Modification</span>
                </div>
-               <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">Deploy New Event</h2>
+               <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">Modify Event #{id}</h2>
             </div>
          </div>
          <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate('/admin/events')}
-              className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all"
+              className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all font-sans"
             >
                Discard
             </button>
             <button 
               onClick={handleSubmit}
-              disabled={loading}
-              className="px-10 py-3 bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-3 active:scale-95"
+              disabled={saving}
+              className="px-10 py-3 bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-3 active:scale-95 font-sans"
             >
-               {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-               Save & Deploy
+               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+               Commit Changes
             </button>
          </div>
       </div>
@@ -173,70 +220,61 @@ const CreateEvent: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-         
-         {/* Main Content Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start font-sans">
          <div className="lg:col-span-8 space-y-8">
             
-            {/* 01. Essential Metadata */}
-            <div className={`bg-white border rounded-[32px] p-10 shadow-sm transition-all ${generalError ? 'ring-1 ring-rose-100' : ''}`}>
+            {/* 01. Logic Overlay */}
+            <div className={`bg-white border rounded-[32px] p-10 shadow-sm transition-all ${generalError ? 'ring-1 ring-rose-100' : 'border-slate-100'}`}>
                <div className="flex items-center gap-4 mb-10">
                   <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
-                     <FileText size={20} />
+                     <Type size={20} />
                   </div>
                   <div>
-                     <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Essential Metadata</h3>
-                     <p className="text-slate-400 text-xs font-medium">Primary identification markers for the event node.</p>
+                     <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Core Configuration</h3>
+                     <p className="text-slate-400 text-xs font-medium">Update primary descriptors for the event node.</p>
                   </div>
                </div>
 
                <div className="grid grid-cols-1 gap-10">
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Type size={14} className="text-indigo-400" /> Strategic Event Title <span className="text-rose-500">*</span>
-                     </label>
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">strategic Title</label>
                      <input 
                         name="title"
                         value={eventData.title}
                         onChange={handleEventChange}
-                        placeholder="Define the resonance..."
-                        className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-lg font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-slate-300 ${fieldErrors.title ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
+                        className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-lg font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all ${fieldErrors.title ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
                      />
                      {fieldErrors.title && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.title}</p>}
                   </div>
                   
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Info size={14} className="text-indigo-400" /> Narrative Overview
-                     </label>
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Narrative Overview</label>
                      <textarea 
                         name="description"
                         rows={6}
                         value={eventData.description}
                         onChange={handleEventChange}
-                        placeholder="Articulate the core experience..."
-                        className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-slate-300 resize-none ${fieldErrors.description ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
+                        className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all resize-none ${fieldErrors.description ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
                      />
                      {fieldErrors.description && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.description}</p>}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <div className="space-y-3 md:col-span-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                           <MapPin size={14} className="text-rose-400" /> Physical/Digital Vector <span className="text-rose-500">*</span>
+                           <MapPin size={12} className="text-rose-400" /> Vector Location
                         </label>
                         <input 
                            name="location"
                            value={eventData.location}
                            onChange={handleEventChange}
-                           placeholder="Location Coordinates"
                            className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-slate-900 font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all ${fieldErrors.location ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
                         />
                         {fieldErrors.location && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.location}</p>}
                      </div>
-                     <div className="space-y-3">
+                     <div className="space-y-3 md:col-span-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                           <Calendar size={14} className="text-emerald-400" /> Initial Magnitude <span className="text-rose-500">*</span>
+                           <Calendar size={12} className="text-emerald-400" /> magnitude Start
                         </label>
                         <input 
                            name="start_date"
@@ -245,14 +283,10 @@ const CreateEvent: React.FC = () => {
                            onChange={handleEventChange}
                            className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-slate-900 font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all ${fieldErrors.start_date ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
                         />
-                        {fieldErrors.start_date && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.start_date}</p>}
                      </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-3">
+                     <div className="space-y-3 md:col-span-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                           <Calendar size={14} className="text-rose-400" /> Final Resolution <span className="text-rose-500">*</span>
+                           <Calendar size={12} className="text-rose-400" /> Final Close
                         </label>
                         <input 
                            name="end_date"
@@ -261,7 +295,6 @@ const CreateEvent: React.FC = () => {
                            onChange={handleEventChange}
                            className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-sans text-slate-900 font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all ${fieldErrors.end_date ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-200'}`} 
                         />
-                        {fieldErrors.end_date && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.end_date}</p>}
                      </div>
                   </div>
                </div>
@@ -275,95 +308,90 @@ const CreateEvent: React.FC = () => {
                         <TicketIcon size={20} />
                      </div>
                      <div>
-                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Access Architecture</h3>
-                        <p className="text-slate-400 text-xs font-medium">Define ticket brackets and unit capacities.</p>
+                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Access Tiers</h3>
+                        <p className="text-slate-400 text-xs font-medium">Managing unit capacities and valuations.</p>
                      </div>
                   </div>
                   <button 
                      onClick={addTier}
-                     className="px-6 py-3 bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-indigo-100 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+                     className="px-6 py-3 bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-indigo-100 transition-all flex items-center gap-2"
                   >
-                     <Plus size={14} /> Add Tier
+                     <Plus size={14} /> Expand Tiers
                   </button>
                </div>
 
                <div className="space-y-10">
                   {ticketTiers.map((tier, idx) => (
-                     <div key={idx} className="p-10 bg-slate-50 rounded-[40px] relative border border-slate-100 group animate-in slide-in-from-right-4 duration-300 shadow-inner">
-                        <div className="absolute -top-4 -left-4 w-10 h-10 bg-indigo-600 text-white font-black flex items-center justify-center rounded-2xl shadow-xl shadow-indigo-600/30 text-xs">
+                     <div key={idx} className="p-10 bg-slate-50 rounded-[40px] relative border border-slate-100 shadow-inner">
+                        <div className="absolute -top-4 -left-4 w-10 h-10 bg-black text-white font-black flex items-center justify-center rounded-2xl shadow-xl text-xs">
                            0{idx + 1}
                         </div>
                         {ticketTiers.length > 1 && (
                            <button 
                               onClick={() => removeTier(idx)}
                               className="absolute top-6 right-6 p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                              title="Remove Tier"
                            >
                               <X size={20} />
                            </button>
                         )}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                            <div className="space-y-3">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tier Designation</label>
+                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Bracket Name</label>
                               <input 
                                  name="name"
                                  value={tier.name}
                                  onChange={(e) => handleTierChange(idx, e)}
-                                 placeholder="Tier Name"
-                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-sm" 
+                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 shadow-sm" 
                               />
                            </div>
                            <div className="space-y-3">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Valuation (IDR)</label>
+                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pricing (IDR)</label>
                               <input 
                                  name="price"
                                  type="number"
                                  value={tier.price}
                                  onChange={(e) => handleTierChange(idx, e)}
-                                 placeholder="Amount"
-                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-sm" 
+                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 shadow-sm" 
                               />
                            </div>
                            <div className="space-y-3">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Unit Capacity</label>
+                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Unit Inventory</label>
                               <input 
                                  name="quota"
                                  type="number"
                                  value={tier.quota}
                                  onChange={(e) => handleTierChange(idx, e)}
-                                 placeholder="Inventory Size"
-                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-sm" 
+                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 shadow-sm" 
                               />
                            </div>
                            <div className="space-y-3">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sales Window Start</label>
+                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Window open</label>
                               <input 
                                  name="sales_start_at"
                                  type="datetime-local"
                                  value={tier.sales_start_at}
                                  onChange={(e) => handleTierChange(idx, e)}
-                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-sm" 
+                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 shadow-sm" 
                               />
                            </div>
                            <div className="space-y-3">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sales Window Close</label>
+                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Window close</label>
                               <input 
                                  name="sales_end_at"
                                  type="datetime-local"
                                  value={tier.sales_end_at}
                                  onChange={(e) => handleTierChange(idx, e)}
-                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-sm" 
+                                 className="w-full bg-white border border-slate-200 px-5 py-4 rounded-xl text-sm font-bold text-slate-900 outline-none focus:border-indigo-300 shadow-sm" 
                               />
                            </div>
                            <div className="space-y-3 col-span-full">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-indigo-400">Bracket Specific Logic (Optional)</label>
+                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-indigo-400">Modification Notes (Optional)</label>
                               <textarea 
                                  name="description"
                                  rows={2}
                                  value={tier.description}
                                  onChange={(e) => handleTierChange(idx, e)}
-                                 placeholder="Add unique details for this tier..."
-                                 className="w-full bg-white border border-slate-200 px-5 py-3 rounded-xl text-sm text-slate-600 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-sm resize-none" 
+                                 className="w-full bg-white border border-slate-200 px-5 py-3 rounded-xl text-sm text-slate-600 outline-none focus:border-indigo-300 shadow-sm resize-none" 
                               />
                            </div>
                         </div>
@@ -373,27 +401,24 @@ const CreateEvent: React.FC = () => {
             </div>
          </div>
 
-         {/* Sidebar Controls/Asset Upload */}
+         {/* Right Sidebar */}
          <div className="lg:col-span-4 space-y-8">
-            
-            {/* Visual Identity Section */}
-            <div className={`bg-white border rounded-[32px] p-8 shadow-sm transition-all ${fieldErrors.banner ? 'border-rose-300 bg-rose-50' : 'border-slate-100'}`}>
-               <div className="flex items-center gap-4 mb-8">
+            <div className={`bg-white border rounded-[32px] p-10 shadow-sm transition-all ${fieldErrors.banner ? 'border-rose-300 bg-rose-50' : 'border-slate-100'}`}>
+               <div className="flex items-center gap-4 mb-10">
                   <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
                      <Upload size={20} />
                   </div>
-                  <h3 className="text-lg font-black text-slate-900 uppercase">Hero Asset</h3>
+                  <h3 className="text-lg font-black text-slate-900 uppercase">Visual Identity</h3>
                </div>
 
                <div className="space-y-6">
                   <div className="relative aspect-[16/10] w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl overflow-hidden group hover:border-indigo-400 transition-all cursor-pointer">
                      {previewUrl ? (
-                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-700" />
+                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
                      ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                           <Upload size={48} className="text-slate-200 mb-4 group-hover:text-indigo-400 group-hover:-translate-y-2 transition-all" />
-                           <p className="text-xs font-black text-slate-900 uppercase tracking-widest mb-2">Upload Branding</p>
-                           <p className="text-[9px] text-slate-400 leading-relaxed max-w-[140px]">High-resolution 16:10 aspect ratio expected.</p>
+                           <Upload size={48} className="text-slate-200 mb-4" />
+                           <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Update Branding</p>
                         </div>
                      )}
                      <input 
@@ -406,41 +431,22 @@ const CreateEvent: React.FC = () => {
                   
                   {fieldErrors.banner && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider text-center">{fieldErrors.banner}</p>}
 
-                  <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl flex items-start gap-4">
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4">
                      <CheckCircle2 size={18} className="text-indigo-600 flex-shrink-0 mt-0.5" />
-                     <p className="text-[10px] font-medium text-slate-500 leading-relaxed">
-                        Uploaded assets are synchronized to our global CDN. Please ensure clear representation as this is the primary conversion point.
+                     <p className="text-[10px] font-medium text-slate-500 leading-relaxed italic">
+                        Node visuals will be synchronized across the marketplace grid.
                      </p>
                   </div>
-               </div>
-            </div>
 
-            {/* Quick Summary / Status */}
-            <div className="bg-indigo-600 border border-indigo-500 rounded-[32px] p-8 text-white shadow-2xl shadow-indigo-600/20">
-                <div className="space-y-6">
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">Current Visibility</p>
-                        <h4 className="text-xl font-black uppercase tracking-tight">Standard Release</h4>
-                    </div>
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest opacity-80">
-                           <span>Total Tiers</span>
-                           <span>{ticketTiers.length}</span>
-                        </div>
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest opacity-80">
-                           <span>Base Currency</span>
-                           <span>IDR</span>
-                        </div>
-                    </div>
-                    <button 
-                       onClick={handleSubmit}
-                       disabled={loading}
-                       className="w-full py-4 bg-white text-indigo-600 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-3 active:scale-95"
-                    >
-                       {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                       Initialize Node
-                    </button>
-                </div>
+                  <button 
+                     onClick={handleSubmit}
+                     disabled={saving}
+                     className="w-full py-5 bg-indigo-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                  >
+                     {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                     Commit Update
+                  </button>
+               </div>
             </div>
          </div>
       </div>
@@ -448,4 +454,4 @@ const CreateEvent: React.FC = () => {
   );
 };
 
-export default CreateEvent;
+export default UpdateEvent;

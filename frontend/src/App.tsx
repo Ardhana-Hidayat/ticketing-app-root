@@ -18,9 +18,11 @@ import PaymentFailed from './pages/PaymentFailed';
 import Dashboard from './pages/admin/Dashboard';
 import EventsList from './pages/admin/EventsList';
 import CreateEvent from './pages/admin/CreateEvent';
+import UpdateEvent from './pages/admin/UpdateEvent';
 import OrdersList from './pages/admin/OrdersList';
 import MerchList from './pages/admin/MerchList';
 import CreateMerch from './pages/admin/CreateMerch';
+import UpdateMerch from './pages/admin/UpdateMerch';
 
 const App: React.FC = () => {
   return (
@@ -44,8 +46,10 @@ const App: React.FC = () => {
           <Route index element={<Dashboard />} />
           <Route path="events" element={<EventsList />} />
           <Route path="events/create" element={<CreateEvent />} />
+          <Route path="events/edit/:id" element={<UpdateEvent />} />
           <Route path="merchandise" element={<MerchList />} />
           <Route path="merch/create" element={<CreateMerch />} />
+          <Route path="merch/edit/:id" element={<UpdateMerch />} />
           <Route path="orders" element={<OrdersList />} />
         </Route>
       </Routes>

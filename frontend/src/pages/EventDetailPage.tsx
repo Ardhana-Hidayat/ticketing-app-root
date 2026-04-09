@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calendar, Clock, ShieldCheck, ShoppingCart, Loader2, Sparkles, AlertTriangle } from 'lucide-react';
 import { eventsApi, type Event } from '@/services/api';
+import { formatImageURL } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
 
@@ -117,17 +118,12 @@ const EventDetailPage: React.FC = () => {
           <main className="pb-40">
             {/* Hero Banner Section */}
             <div className="relative w-full aspect-[16/9] md:aspect-[21/7] lg:aspect-[3/1] bg-dark-grey border-b border-white/10 overflow-hidden group/img">
-              {event.banner_url ? (
-                <img
-                  src={event.banner_url}
-                  alt={event.title}
-                  className="w-full h-full object-cover transition-all duration-1000 grayscale group-hover/img:grayscale-0 group-hover/img:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full bg-dark-grey flex items-center justify-center opacity-10">
-                  <span className="text-[10rem] font-heading">🎵</span>
-                </div>
-              )}
+              <img
+                src={formatImageURL(event.banner_url)}
+                alt={event.title}
+                className="w-full h-full object-cover transition-all duration-1000 grayscale group-hover/img:grayscale-0 group-hover/img:scale-105"
+                onError={(e) => (e.currentTarget.src = "/fallback.png")}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
               
               <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">

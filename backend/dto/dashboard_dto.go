@@ -3,9 +3,11 @@ package dto
 import "time"
 
 type DashboardSummaryResponse struct {
-	Revenue      float64 `json:"revenue"`
-	TicketsSold  int64   `json:"tickets_sold"`
-	ActiveEvents int64   `json:"active_events"`
+	Revenue          float64 `json:"revenue"`
+	TicketsSold      int64   `json:"tickets_sold"`
+	ActiveEvents     int64   `json:"active_events"`
+	TotalOrders      int64   `json:"total_orders"`
+	TotalMerchandise int64   `json:"total_merchandise"`
 }
 
 type SalesChartPoint struct {

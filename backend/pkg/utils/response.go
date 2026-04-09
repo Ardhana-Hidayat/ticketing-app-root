@@ -5,15 +5,15 @@ import (
 )
 
 type Response struct {
-	Status  string      `json:"status"`
+	Success bool        `json:"success"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-	Errors  interface{} `json:"errors"`
+	Data    interface{} `json:"data,omitempty"`
+	Errors  interface{} `json:"errors,omitempty"`
 }
 
 func SuccessResponse(c *gin.Context, statusCode int, message string, data interface{}) {
 	c.JSON(statusCode, Response{
-		Status:  "success",
+		Success: true,
 		Message: message,
 		Data:    data,
 		Errors:  nil,
@@ -22,7 +22,7 @@ func SuccessResponse(c *gin.Context, statusCode int, message string, data interf
 
 func ErrorResponse(c *gin.Context, statusCode int, message string, errors interface{}) {
 	c.JSON(statusCode, Response{
-		Status:  "error",
+		Success: false,
 		Message: message,
 		Data:    nil,
 		Errors:  errors,

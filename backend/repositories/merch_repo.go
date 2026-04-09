@@ -18,6 +18,7 @@ type MerchandiseRepository interface {
 	Delete(ctx context.Context, merchandise *models.Merchandise) error
 	FindByIDWithLock(tx *gorm.DB, id uint) (*models.Merchandise, error)
 	UpdateStockWithTx(tx *gorm.DB, id uint, newStock int) error
+	Count(ctx context.Context) (int64, error)
 }
 
 type merchandiseRepository struct {
@@ -106,4 +107,10 @@ func (r *merchandiseRepository) UpdateStockWithTx(tx *gorm.DB, id uint, newStock
 	return tx.Model(&models.Merchandise{}).
 		Where("id = ?", id).
 		Update("stock", newStock).Error
+}
+
+func (r *merchandiseRepository) Count(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&models.Merchandise{}).Count(&count).Error
+	return count, err
 }

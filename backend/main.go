@@ -56,7 +56,7 @@ func main() {
 	merchService := services.NewMerchandiseService(merchRepo)
 	xenditService := services.NewXenditService()
 	orderService := services.NewOrderService(orderRepo, eventRepo, merchRepo, userRepo, xenditService)
-	dashboardService := services.NewDashboardService(orderRepo, eventRepo)
+	dashboardService := services.NewDashboardService(orderRepo, eventRepo, merchRepo)
 
 	authHandler := controllers.NewAuthHandler(authService, userRepo)
 	eventHandler := controllers.NewEventHandler(eventService)

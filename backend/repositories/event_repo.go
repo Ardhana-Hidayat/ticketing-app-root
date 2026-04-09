@@ -25,6 +25,7 @@ type EventRepository interface {
 	BulkCreateTicketsWithTx(tx *gorm.DB, tickets []models.TicketType) error
 	Update(ctx context.Context, event *models.Event) error
 	UpdateWithTx(tx *gorm.DB, event *models.Event) error
+	Count(ctx context.Context) (int64, error)
 	DeleteWithTx(tx *gorm.DB, event *models.Event) error
 	DeleteTicketsByEventWithTx(tx *gorm.DB, eventID uint) error
 
@@ -152,6 +153,12 @@ func (r *eventRepository) FindByID(ctx context.Context, id uint) (*models.Event,
 	}
 
 	return &event, nil
+}
+
+func (r *eventRepository) Count(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&models.Event{}).Count(&count).Error
+	return count, err
 }
 
 func (r *eventRepository) CountActivePublished(ctx context.Context, now time.Time) (int64, error) {

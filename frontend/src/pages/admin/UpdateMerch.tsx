@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { adminApi } from '@/services/api';
+import { formatImageURL } from '@/lib/utils';
 import { 
   ArrowLeft, 
   Package, 
@@ -13,13 +14,16 @@ import {
   Box,
   Hash,
   AlertCircle,
-  Shapes
+  Shapes,
+  FileEdit
 } from 'lucide-react';
 import { RequestError } from '@/lib/api-client';
 
-const CreateMerch: React.FC = () => {
+const UpdateMerch: React.FC = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
 
@@ -34,6 +38,35 @@ const CreateMerch: React.FC = () => {
     stock: '',
     active_status: true
   });
+
+  useEffect(() => {
+    if (id) {
+       fetchMerch(parseInt(id));
+    }
+  }, [id]);
+
+  const fetchMerch = async (merchId: number) => {
+    try {
+      const res: any = await adminApi.getMerchById(merchId);
+      const data = res;
+      setFormData({
+        name: data.name || '',
+        slug: data.slug || '',
+        description: data.description || '',
+        price: data.price !== undefined ? String(data.price) : '',
+        stock: data.stock !== undefined ? String(data.stock) : '',
+        active_status: data.active_status ?? true
+      });
+      if (data.image_url) {
+        setPreviewUrl(formatImageURL(data.image_url));
+      }
+    } catch (err: any) {
+      setGeneralError('Product record access failed. Returning to store.');
+      setTimeout(() => navigate('/admin/merchandise'), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as any;
@@ -53,28 +86,25 @@ const CreateMerch: React.FC = () => {
       const file = e.target.files[0];
       setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
-      if (fieldErrors['image']) {
-         const newErrors = { ...fieldErrors };
-         delete newErrors['image'];
-         setFieldErrors(newErrors);
-      }
+       if (fieldErrors['image']) {
+          const newErrors = { ...fieldErrors };
+          delete newErrors['image'];
+          setFieldErrors(newErrors);
+       }
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!id) return;
+    
     setFieldErrors({});
     setGeneralError('');
-
-    if (!formData.name || !formData.price || !formData.stock) {
-      setGeneralError("Please fill in the mandatory product specifications.");
-      return;
-    }
-
-    setLoading(true);
+    setSaving(true);
+    
     const data = new FormData();
     data.append('name', formData.name);
-    data.append('slug', formData.slug || formData.name.toLowerCase().replace(/ /g, '-'));
+    data.append('slug', formData.slug);
     data.append('description', formData.description);
     data.append('price', formData.price);
     data.append('stock', formData.stock);
@@ -85,22 +115,31 @@ const CreateMerch: React.FC = () => {
     }
 
     try {
-      await adminApi.createMerchandise(data as any);
+      await adminApi.updateMerchandise(parseInt(id), data as any);
       navigate('/admin/merchandise');
     } catch (err: any) {
       if (err instanceof RequestError && err.errors) {
         setFieldErrors(err.errors);
-        setGeneralError('Validation conflict. Review highlighted fields.');
+        setGeneralError('Attribute collision detect. Correct highlighted nodes.');
       } else {
-        setGeneralError(err.message || 'The system could not initialize this product node.');
+        setGeneralError(err.message || 'The system could not commit update to product node.');
       }
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 animate-pulse">
+        <Loader2 className="animate-spin text-indigo-600 w-12 h-12 mb-6" />
+        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Navigating Inventory Sector...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 pb-32 animate-in fade-in duration-1000">
+    <div className="space-y-8 pb-32 animate-in fade-in duration-700">
       
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white border border-slate-100 p-8 rounded-3xl shadow-sm">
@@ -113,26 +152,26 @@ const CreateMerch: React.FC = () => {
             </button>
             <div>
                <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Inventory Registry</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Inventory Modification</span>
                </div>
-               <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">List New Asset</h2>
+               <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase tracking-tight">Modify Asset #{id}</h2>
             </div>
          </div>
          <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate('/admin/merchandise')}
-              className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all"
+              className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all font-sans"
             >
                Discard
             </button>
             <button 
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-10 py-3 bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-3 active:scale-95"
+              onClick={() => handleSubmit()}
+              disabled={saving}
+              className="px-10 py-3 bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-3 active:scale-95 font-sans"
             >
-               {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-               Init Asset
+               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+               Commit Update
             </button>
          </div>
       </div>
@@ -148,28 +187,28 @@ const CreateMerch: React.FC = () => {
         
         {/* Main Info Card */}
         <div className="lg:col-span-2 space-y-10">
-          <form id="merch-form" onSubmit={handleSubmit} className="bg-white border border-slate-100 p-10 md:p-12 rounded-[32px] shadow-sm space-y-12">
+          <form id="merch-form" onSubmit={handleSubmit} className={`bg-white border p-10 md:p-12 rounded-[32px] shadow-sm space-y-12 transition-all ${generalError ? 'border-rose-300 shadow-rose-600/5' : 'border-slate-100 shadow-2xl shadow-indigo-600/5'}`}>
              <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                   <Shapes size={20} />
+                   <FileEdit size={20} />
                 </div>
                 <div>
-                   <h3 className="text-lg font-black text-slate-900 uppercase">Product Specification</h3>
-                   <p className="text-slate-400 text-xs font-medium">Define the physical manifest properties.</p>
+                   <h3 className="text-lg font-black text-slate-900 uppercase">Modify Specifications</h3>
+                   <p className="text-slate-400 text-xs font-medium">Update the properties for product node #{id}.</p>
                 </div>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-3">
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Tag size={12} className="text-indigo-400" /> Strategic Name <span className="text-rose-500">*</span>
+                      <Tag size={12} className="text-indigo-400" /> Strategic Identity <span className="text-rose-500">*</span>
                    </label>
                    <input 
                      name="name" 
                      value={formData.name} 
                      onChange={handleInputChange} 
-                     className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all outline-none ${fieldErrors.name ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-600'}`}
-                     placeholder="e.g. Official Cap 2024"
+                     className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all ${fieldErrors.name ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-600'}`}
+                     placeholder="Product Name"
                      required
                    />
                    {fieldErrors.name && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.name}</p>}
@@ -184,19 +223,17 @@ const CreateMerch: React.FC = () => {
                      value={formData.slug} 
                      onChange={handleInputChange} 
                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 font-bold text-slate-900 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all placeholder:text-slate-300"
-                     placeholder="tshirt-v1-black"
                    />
                 </div>
 
                 <div className="md:col-span-2 space-y-3">
-                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Narrative (Specs/Materials)</label>
+                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Narrative</label>
                    <textarea 
                     name="description" 
                     value={formData.description} 
                     onChange={handleInputChange} 
                     rows={5}
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-slate-600 outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all resize-none font-medium"
-                    placeholder="Describe material, edition, and utility..."
                    />
                 </div>
 
@@ -208,7 +245,6 @@ const CreateMerch: React.FC = () => {
                     value={formData.price} 
                     onChange={handleInputChange} 
                     className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all ${fieldErrors.price ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-600'}`}
-                    placeholder="150000"
                     required
                    />
                    {fieldErrors.price && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.price}</p>}
@@ -216,7 +252,7 @@ const CreateMerch: React.FC = () => {
 
                 <div className="space-y-3">
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Box size={12} className="text-indigo-400" /> Inventory Depth <span className="text-rose-500">*</span>
+                      <Box size={12} className="text-indigo-400" /> Inventory Sector Stock <span className="text-rose-500">*</span>
                    </label>
                    <input 
                      name="stock" 
@@ -224,7 +260,6 @@ const CreateMerch: React.FC = () => {
                      value={formData.stock} 
                      onChange={handleInputChange} 
                      className={`w-full bg-slate-50 border px-6 py-5 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all ${fieldErrors.stock ? 'border-rose-300 bg-rose-50' : 'border-slate-100 focus:border-indigo-600'}`}
-                     placeholder="100"
                      required
                    />
                    {fieldErrors.stock && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider pl-1">{fieldErrors.stock}</p>}
@@ -262,32 +297,22 @@ const CreateMerch: React.FC = () => {
                     ) : (
                       <div className="p-10 flex flex-col items-center">
                          <Package size={64} className="text-slate-100 mb-4 group-hover:-translate-y-2 transition-transform" />
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Visual</p>
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Update Asset Visual</p>
                       </div>
                     )}
                     <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
                  </div>
                  {fieldErrors.image && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{fieldErrors.image}</p>}
-                 <p className="text-[9px] text-slate-400 font-medium italic">Asset will be projected in high-res grid.</p>
-              </div>
-
-              <div className="p-6 bg-indigo-50/50 rounded-2xl space-y-3">
-                 <div className="flex items-center gap-3">
-                    <CheckCircle2 size={16} className="text-indigo-600" />
-                    <span className="text-[10px] font-black uppercase text-slate-600 tracking-tighter">Inventory Readiness confirmed</span>
-                 </div>
-                 <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
-                   New listings propogate instantly.
-                 </p>
+                 <p className="text-[9px] text-slate-400 font-medium italic">Modifications propagate instantly to the storefront.</p>
               </div>
 
               <button 
-                onClick={handleSubmit}
-                disabled={loading}
+                onClick={() => handleSubmit()}
+                disabled={saving}
                 className="w-full py-5 bg-indigo-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
               >
-                 {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                 Init Node
+                 {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                 Commit Update
               </button>
            </div>
         </div>
@@ -296,4 +321,4 @@ const CreateMerch: React.FC = () => {
   );
 };
 
-export default CreateMerch;
+export default UpdateMerch;

@@ -16,8 +16,8 @@ export const adminService = {
     const res = await fetch(`${API_BASE_URL}/admin/dashboard/summary`, {
       headers: { ...getAuthHeaders() },
     });
-    const data = await handleResponse<any>(res);
-    return data.data as DashboardSummaryResponse;
+    const data = await handleResponse<DashboardSummaryResponse>(res);
+    return data;
   },
 
   // Events
@@ -47,16 +47,16 @@ export const adminService = {
       headers,
       body: isFormData ? data : JSON.stringify(data),
     });
-    const parsed = await handleResponse<any>(res);
-    return parsed.data as Event;
+    const parsed = await handleResponse<Event>(res);
+    return parsed;
   },
 
-  async getEventByID(id: number): Promise<Event> {
+  async getEventById(id: number): Promise<Event> {
     const res = await fetch(`${API_BASE_URL}/admin/events/${id}`, {
       headers: { ...getAuthHeaders() },
     });
-    const parsed = await handleResponse<any>(res);
-    return parsed.data as Event;
+    const parsed = await handleResponse<Event | any>(res);
+    return parsed?.data || parsed;
   },
 
   async updateEvent(id: number, data: CreateEventRequest | FormData): Promise<Event> {
@@ -71,8 +71,8 @@ export const adminService = {
       headers,
       body: isFormData ? data : JSON.stringify(data),
     });
-    const parsed = await handleResponse<any>(res);
-    return parsed.data as Event;
+    const parsed = await handleResponse<Event>(res);
+    return parsed;
   },
 
   async deleteEvent(id: number): Promise<void> {
@@ -120,8 +120,8 @@ export const adminService = {
       headers: { ...getAuthHeaders() },
       body: data,
     });
-    const parsed = await handleResponse<any>(res);
-    return parsed.data as Merchandise;
+    const parsed = await handleResponse<Merchandise>(res);
+    return parsed;
   },
 
   async updateMerchandise(id: number, data: FormData): Promise<Merchandise> {
@@ -130,8 +130,16 @@ export const adminService = {
       headers: { ...getAuthHeaders() },
       body: data,
     });
-    const parsed = await handleResponse<any>(res);
-    return parsed.data as Merchandise;
+    const parsed = await handleResponse<Merchandise>(res);
+    return parsed;
+  },
+
+  async getMerchById(id: number): Promise<Merchandise> {
+    const res = await fetch(`${API_BASE_URL}/admin/merchandise/${id}`, {
+      headers: { ...getAuthHeaders() },
+    });
+    const parsed = await handleResponse<Merchandise | any>(res);
+    return parsed?.data || parsed;
   },
 
   async deleteMerchandise(id: number): Promise<void> {

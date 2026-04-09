@@ -141,6 +141,10 @@ func (r *eventRepoStub) UpdateTicketWithTx(_ *gorm.DB, ticket *models.TicketType
 	return nil
 }
 
+func (r *eventRepoStub) Count(_ context.Context) (int64, error) {
+	return 0, nil
+}
+
 func (r *eventRepoStub) DeactivateTicketsExceptWithTx(_ *gorm.DB, eventID uint, keepIDs []uint) error {
 	if r.event == nil || r.event.ID != eventID {
 		return nil
@@ -203,6 +207,10 @@ func (r *merchandiseRepoStub) FindByIDWithLock(*gorm.DB, uint) (*models.Merchand
 
 func (r *merchandiseRepoStub) UpdateStockWithTx(*gorm.DB, uint, int) error {
 	return nil
+}
+
+func (r *merchandiseRepoStub) Count(_ context.Context) (int64, error) {
+	return 0, nil
 }
 
 func withServiceTempWorkingDir(t *testing.T) string {

@@ -12,15 +12,20 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    
     // @ts-ignore
-    if (window.google) {
+    if (window.google && clientId) {
       // @ts-ignore
       window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        client_id: clientId,
         callback: handleGoogleResponse,
         auto_select: false,
+        use_fedcm_for_prompt: true, // Opt-in to FedCM as requested by Google
         cancel_on_tap_outside: true
       });
+    } else if (!clientId) {
+      console.error("VITE_GOOGLE_CLIENT_ID is not defined in environment variables");
     }
   }, []);
 

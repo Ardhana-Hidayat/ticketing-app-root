@@ -1,8 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Ticket } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
 
 const PaymentSuccess: React.FC = () => {
+  const { clearCart } = useCart();
+
+  React.useEffect(() => {
+    clearCart();
+  }, [clearCart]);
+
   return (
     <>
       <style>{`

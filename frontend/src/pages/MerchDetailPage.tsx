@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, ShoppingCart, Loader2, AlertTriangle } from 'lucide-react';
 import { merchandiseApi, type Merchandise } from '@/services/api';
+import { formatImageURL } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import CartDrawer from '@/components/CartDrawer';
 
@@ -108,20 +109,14 @@ const MerchDetailPage: React.FC = () => {
               
               {/* Left: Image Box */}
               <div className="relative aspect-square bg-dark-grey border border-white/10 group/img overflow-hidden">
-                {merch.image_url ? (
                   <img
-                    src={merch.image_url}
+                    src={formatImageURL(merch.image_url)}
                     alt={merch.name}
                     className={`w-full h-full object-cover transition-all duration-1000 ${
                       isOutOfStock ? 'grayscale opacity-50' : 'grayscale group-hover/img:grayscale-0 group-hover/img:scale-110'
                     }`}
+                    onError={(e) => (e.currentTarget.src = "/fallback.png")}
                   />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-dark-grey opacity-20">
-                    <Package className="w-32 h-32 mb-6" />
-                    <span className="font-heading text-3xl tracking-widest uppercase">NO IMAGE</span>
-                  </div>
-                )}
                 
                 {isOutOfStock && (
                   <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">

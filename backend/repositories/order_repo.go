@@ -42,6 +42,8 @@ type OrderRepository interface {
 	FindWebhookLogByInvoiceID(ctx context.Context, invoiceID string) (*models.PaymentWebhookLog, error)
 	CreateWebhookLogWithTx(tx *gorm.DB, webhookLog *models.PaymentWebhookLog) error
 	UpdateWebhookLogWithTx(tx *gorm.DB, webhookLog *models.PaymentWebhookLog) error
+	CountPaidOrders(ctx context.Context) (int64, error)
+	CountAll(ctx context.Context) (int64, error)
 }
 
 type orderRepository struct {
@@ -346,4 +348,16 @@ func (r *orderRepository) FindTicketTypeWithLock(tx *gorm.DB, ticketID uint) (*m
 
 func (r *orderRepository) UpdateTicketQuota(tx *gorm.DB, ticketID uint, newQuota int) error {
 	return tx.Model(&models.TicketType{}).Where("id = ?", ticketID).Update("remaining_quota", newQuota).Error
+}
+
+func (r *orderRepository) CountPaidOrders(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&models.Order{}).Where("status = ?", "paid").Count(&count).Error
+	return count, err
+}
+
+func (r *orderRepository) CountAll(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&models.Order{}).Count(&count).Error
+	return count, err
 }

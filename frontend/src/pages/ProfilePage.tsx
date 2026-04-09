@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User as UserIcon, LogOut, Loader2, Save, ArrowLeft, Mail, ShieldCheck, Ticket, ShoppingBag, Star, Edit3, X, AlertCircle } from 'lucide-react';
+import { User as UserIcon, LogOut, Loader2, ArrowRight, Mail, Ticket, ShoppingBag, History, Edit3, X, AlertCircle, ChevronDown, CheckCircle2, QrCode, Lock, Shield, UserCircle, Settings, Key, Package } from 'lucide-react';
 import { authApi, orderApi } from '@/services/api';
 import type { User, Order } from '@/services/api';
 
@@ -14,22 +14,12 @@ const ProfilePage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [activeSection, setActiveSection] = useState<'items' | 'history' | 'account' | 'security'>('items');
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const editFormRef = React.useRef<HTMLDivElement>(null);
-  const passwordFormRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isEditing && editFormRef.current) {
-      editFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    if (isChangingPassword && passwordFormRef.current) {
-      passwordFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [isEditing, isChangingPassword]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,7 +34,7 @@ const ProfilePage: React.FC = () => {
         setOrders(ordersData || []);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch profile data');
-        if (err.status === 401 || err.status === '401') {
+        if (err.status === 401) {
           authApi.logout();
           navigate('/login');
         }
@@ -61,21 +51,12 @@ const ProfilePage: React.FC = () => {
     setError('');
     setSuccess('');
     setIsSaving(true);
-
     try {
       const updatedUser = await authApi.updateProfile(name, email);
       setUser(updatedUser);
-      const token = localStorage.getItem('auth_token') || '';
-      authApi.saveSession(token, updatedUser);
-      setSuccess('PROFILE SUCCESSFULLY UPDATED.');
-      setIsEditing(false);
+      setSuccess('Your profile has been updated successfully.');
     } catch (err: any) {
-      if (err.name === 'RequestError' && err.errors) {
-        const allErrors = Object.values(err.errors).join(', ');
-        setError(`Error: ${allErrors}`);
-      } else {
-        setError(err.message || 'Failed to update profile');
-      }
+      setError(err.message || 'Failed to update profile');
     } finally {
       setIsSaving(false);
     }
@@ -83,28 +64,21 @@ const ProfilePage: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    
     if (newPassword !== confirmPassword) {
-      setError('Password confirmation does not match');
+      setError('New password and confirmation do not match.');
       return;
     }
-
+    setError('');
+    setSuccess('');
     setIsSaving(true);
     try {
-      await authApi.changePassword({
-        old_password: oldPassword,
-        new_password: newPassword,
-        confirm_password: confirmPassword
-      });
-      setSuccess('SECURITY KEY UPDATED!');
+      await authApi.changePassword({ old_password: oldPassword, new_password: newPassword });
+      setSuccess('Your password has been changed successfully.');
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setIsChangingPassword(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to update password');
+      setError(err.message || 'Failed to change password');
     } finally {
       setIsSaving(false);
     }
@@ -115,389 +89,368 @@ const ProfilePage: React.FC = () => {
     navigate('/login');
   };
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setName(user?.name || '');
-    setEmail(user?.email || '');
-    setError('');
-    setSuccess('');
-  };
+  const myPaidItems = (Array.isArray(orders) ? orders : [])
+    .filter(o => o.status?.toLowerCase() === 'paid')
+    .flatMap(o => (o.order_items || []).map(item => ({ ...item, orderId: o.id })));
 
-  const handleCancelPassword = () => {
-    setIsChangingPassword(false);
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setError('');
-    setSuccess('');
+  const historyOrders = (Array.isArray(orders) ? orders : []);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <Loader2 className="w-16 h-16 animate-spin text-neon-cyan mb-6" />
-        <p className="font-heading text-xl uppercase tracking-widest text-neon-cyan animate-pulse">DECRYPTING DATA...</p>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center px-6">
+        <div className="w-12 h-12 mb-8 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(0,229,255,0.4)]"></div>
+        <p className="font-heading uppercase text-sm text-white tracking-widest animate-pulse">Syncing Session...</p>
       </div>
     );
   }
 
   return (
-    <>
-      <style>{`
-        .text-outline {
-          -webkit-text-stroke: 1px white;
-          color: transparent;
-        }
-      `}</style>
-      <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-pink selection:text-white flex flex-col overflow-x-hidden relative">
-        <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] bg-neon-cyan/10 rounded-full blur-[120px] pointer-events-none"></div>
-
-        {/* Navbar */}
-        <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-6 flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 group cursor-pointer">
-              <span className="text-3xl md:text-5xl font-heading uppercase tracking-tighter text-white">
-                KLIX<span className="text-outline">TICKET</span>
-              </span>
-            </Link>
-            
-            <div className="flex items-center gap-6">
-              <Link 
-                to="/" 
-                className="hidden sm:flex text-white/50 hover:text-white font-bold uppercase tracking-[0.2em] transition-colors items-center gap-2"
-              >
-                <ArrowLeft className="w-5 h-5" /> HOME
-              </Link>
-              <button 
-                onClick={handleLogout}
-                className="border border-neon-pink text-neon-pink px-6 py-3 font-heading uppercase text-lg tracking-widest hover:bg-neon-pink hover:text-white transition-all flex items-center gap-3"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="hidden sm:inline">LOGOUT</span>
-              </button>
-            </div>
+    <div className="min-h-screen bg-black font-sans text-white flex flex-col pt-16">
+      <nav className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-white/10 py-4">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white text-black font-heading text-xl flex items-center justify-center">K</div>
+            <span className="text-lg font-heading uppercase tracking-tighter">KlixTicket</span>
+          </Link>
+          <div className="flex items-center gap-6">
+             {user?.role === 'admin' && (
+              <Link to="/admin" className="px-4 py-1.5 bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20 rounded-sm font-bold text-[9px] uppercase tracking-widest hover:bg-neon-cyan hover:text-black transition-all">Go to Admin</Link>
+            )}
+             <button onClick={handleLogout} className="text-[9px] font-bold text-white/50 uppercase tracking-widest hover:text-red-500 transition-colors">Sign Out</button>
           </div>
-        </nav>
+        </div>
+      </nav>
 
-        {/* Main Content */}
-        <main className="flex-1 px-4 py-12 md:py-20 flex items-center justify-center relative z-10 w-full max-w-[1200px] mx-auto">
-          <div className="w-full bg-dark-grey border border-white/10 backdrop-blur-xl">
-            
-            {/* Header / ID Card */}
-            <div className="p-8 md:p-12 relative overflow-hidden border-b border-white/10">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
-              
-              <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
-                <div className="relative group">
-                  <div className="w-32 h-32 md:w-40 md:h-40 bg-black border border-white/20 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all">
-                    {user?.avatar_url ? (
-                      <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <UserIcon className="w-16 h-16 text-white/20" />
-                    )}
-                  </div>
-                  {!isEditing && (
-                    <button 
-                      onClick={() => setIsEditing(true)}
-                      className="absolute -bottom-3 -right-3 bg-white text-black p-4 hover:bg-neon-cyan transition-all border border-black"
-                    >
-                      <Edit3 className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex-1 text-center md:text-left">
-                  <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                    <span className="bg-neon-cyan/10 text-neon-cyan px-3 py-1 font-bold text-xs uppercase tracking-[0.3em] border border-neon-cyan/20">
-                      {user?.role}
-                    </span>
-                    <span className="text-white/30 font-bold uppercase tracking-[0.3em] text-[10px]">
-                      SUBJECT ID: #{user?.id}
-                    </span>
-                  </div>
-                  <h1 className="text-5xl md:text-7xl font-heading uppercase tracking-tighter text-white leading-none mb-4">
-                    {user?.name}
-                  </h1>
-                  <div className="flex items-center justify-center md:justify-start gap-3 text-white/50">
-                    <Mail className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-widest">{user?.email}</span>
-                  </div>
-                </div>
+      <main className="max-w-7xl mx-auto px-6 py-12 w-full flex-1">
+        
+        {/* User Quick Switcher/Header */}
+        <div className="mb-12 flex flex-col md:flex-row items-center gap-8 bg-dark-grey/30 border border-white/5 p-8 rounded-sm">
+           <div className="relative">
+              <div className="w-24 h-24 bg-dark-grey border border-white/10 flex items-center justify-center rounded-sm">
+                 <UserCircle className="w-16 h-16 text-white/10" />
               </div>
-            </div>
-
-            <div className="p-8 md:p-12 space-y-16">
-              
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 border border-white/5 bg-black/50 overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-white/5">
-                <div className="p-8 flex items-center gap-6 group hover:bg-white/5 transition-colors">
-                  <div className="bg-neon-cyan/10 p-4 border border-neon-cyan/20 group-hover:border-neon-cyan transition-colors">
-                    <Ticket className="w-8 h-8 text-neon-cyan" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-white/40 tracking-[0.2em] uppercase mb-1">TICKETS OWNED</p>
-                    <p className="text-3xl font-heading tracking-widest text-white">
-                      {orders.reduce((acc, o) => acc + (o.order_items?.length || 0), 0)}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="p-8 flex items-center gap-6 group hover:bg-white/5 transition-colors">
-                  <div className="bg-neon-pink/10 p-4 border border-neon-pink/20 group-hover:border-neon-pink transition-colors">
-                    <ShoppingBag className="w-8 h-8 text-neon-pink" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-white/40 tracking-[0.2em] uppercase mb-1">TOTAL ORDERS</p>
-                    <p className="text-3xl font-heading tracking-widest text-white">{orders.length}</p>
-                  </div>
-                </div>
-                
-                <div className="p-8 flex items-center gap-6 group hover:bg-white/5 transition-colors">
-                  <div className="bg-neon-yellow/10 p-4 border border-neon-yellow/20 group-hover:border-neon-yellow transition-colors">
-                    <Star className="w-8 h-8 text-neon-yellow" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-white/40 tracking-[0.2em] uppercase mb-1">RESONANCE POINTS</p>
-                    <p className="text-3xl font-heading tracking-widest text-white">
-                      {Math.floor(orders.reduce((acc, o) => acc + (o.total_amount || 0), 0) / 10000)}
-                    </p>
-                  </div>
-                </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-neon-cyan rounded-full border-2 border-black flex items-center justify-center">
+                 <CheckCircle2 size={12} className="text-black" />
               </div>
+           </div>
+           <div className="text-center md:text-left flex-1">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-cyan mb-2">Authenticated Account</p>
+              <h1 className="text-4xl md:text-5xl font-heading uppercase leading-none tracking-tighter mb-2">{user?.name}</h1>
+              <p className="text-white/40 text-sm">{user?.email}</p>
+           </div>
+           <div className="flex md:flex-col gap-2">
+              <div className="px-4 py-2 bg-dark-grey border border-white/5 rounded-sm text-center">
+                 <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">Purchases</p>
+                 <p className="font-heading text-xl">{historyOrders.length}</p>
+              </div>
+              <div className="px-4 py-2 bg-dark-grey border border-white/5 rounded-sm text-center">
+                 <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">Active Items</p>
+                 <p className="font-heading text-xl text-neon-cyan">{myPaidItems.length}</p>
+              </div>
+           </div>
+        </div>
 
-              {/* Alerts */}
-              {(error || success) && (
-                <div className={`p-6 border flex items-center gap-4 ${error ? 'bg-neon-pink/10 border-neon-pink text-neon-pink' : 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan'}`}>
-                  {error ? <AlertCircle className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
-                  <span className="font-bold uppercase text-xs tracking-widest flex-1">{error || success}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+           
+           {/* Navigation Sidebar */}
+           <aside className="lg:col-span-3">
+              <div className="flex flex-col gap-1">
+                 <button 
+                  onClick={() => setActiveSection('items')} 
+                  className={`flex items-center gap-4 px-6 py-4 font-heading text-sm uppercase tracking-widest border transition-all ${activeSection === 'items' ? 'bg-white text-black border-white' : 'text-white/40 border-white/5 hover:bg-white/5 hover:text-white'}`}
+                 >
+                    <Package size={18} />
+                    <span>My Items</span>
+                 </button>
+                 <button 
+                  onClick={() => setActiveSection('history')} 
+                  className={`flex items-center gap-4 px-6 py-4 font-heading text-sm uppercase tracking-widest border transition-all ${activeSection === 'history' ? 'bg-white text-black border-white' : 'text-white/40 border-white/5 hover:bg-white/5 hover:text-white'}`}
+                 >
+                    <History size={18} />
+                    <span>Order History</span>
+                 </button>
+                 <button 
+                  onClick={() => setActiveSection('account')} 
+                  className={`flex items-center gap-4 px-6 py-4 font-heading text-sm uppercase tracking-widest border transition-all ${activeSection === 'account' ? 'bg-white text-black border-white' : 'text-white/40 border-white/5 hover:bg-white/5 hover:text-white'}`}
+                 >
+                    <UserIcon size={18} />
+                    <span>Profile Info</span>
+                 </button>
+                 <button 
+                  onClick={() => setActiveSection('security')} 
+                  className={`flex items-center gap-4 px-6 py-4 font-heading text-sm uppercase tracking-widest border transition-all ${activeSection === 'security' ? 'bg-white text-black border-white' : 'text-white/40 border-white/5 hover:bg-white/5 hover:text-white'}`}
+                 >
+                    <Key size={18} />
+                    <span>Security</span>
+                 </button>
+              </div>
+           </aside>
+
+           {/* Content Area */}
+           <div className="lg:col-span-9">
+              
+              {activeSection === 'items' && (
+                <div className="space-y-6">
+                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <h2 className="text-2xl font-heading uppercase tracking-widest">My Digital Items</h2>
+                      <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{myPaidItems.length} ACTIVE ASSETS</span>
+                   </div>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {myPaidItems.length === 0 ? (
+                        <div className="col-span-full py-24 bg-dark-grey/20 border border-dashed border-white/5 flex flex-col items-center text-center">
+                           <ShoppingBag size={48} className="mb-4 text-white/10" />
+                           <p className="text-white/40 text-sm italic font-medium">You haven't purchased anything yet.</p>
+                           <Link to="/" className="mt-8 px-8 py-3 bg-neon-cyan text-black font-bold uppercase text-[10px] tracking-widest hover:bg-white transition-all transform hover:-rotate-1">Discover Events</Link>
+                        </div>
+                      ) : (
+                        myPaidItems.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => setSelectedItem(item)}
+                            className="bg-dark-grey border border-white/5 p-6 hover:border-neon-cyan transition-all cursor-pointer group flex flex-col relative overflow-hidden"
+                          >
+                            <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                               {item.item_type === 'ticket' ? <Ticket size={80} /> : <ShoppingBag size={80} />}
+                            </div>
+                            <div className="flex justify-between items-start mb-10 relative z-10">
+                               <div className="w-10 h-10 bg-black border border-white/10 flex items-center justify-center text-neon-pink shadow-[0_0_15px_rgba(254,44,85,0.1)] group-hover:shadow-[0_0_15px_rgba(254,44,85,0.3)] transition-all">
+                                  {item.item_type === 'ticket' ? <Ticket size={20} /> : <ShoppingBag size={20} />}
+                               </div>
+                               <span className="text-[8px] font-black uppercase text-neon-yellow px-2 py-1 bg-neon-yellow/10 rounded-full tracking-widest">Ownership Confirmed</span>
+                            </div>
+                            <h3 className="text-xl font-heading uppercase text-white mb-8 group-hover:text-neon-cyan transition-colors truncate relative z-10">{item.item_name}</h3>
+                            <div className="flex items-center justify-between relative z-10">
+                               <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Ref: {item.orderId?.slice(-8).toUpperCase()}</span>
+                               <span className="flex items-center gap-1 text-[9px] font-black uppercase text-white tracking-widest">View Details <ArrowRight size={10} /></span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                   </div>
                 </div>
               )}
 
-              {/* Form Area */}
-              <div ref={editFormRef} className="space-y-16">
-                
-                {/* Profile Information */}
-                <section>
-                  <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-3xl font-heading uppercase tracking-tighter text-white flex items-center gap-4">
-                      <span className="w-8 h-1 bg-neon-cyan"></span>
-                      {isEditing ? 'EDIT DATA FILE' : 'PERSONAL LOG'}
-                    </h2>
-                  </div>
+              {activeSection === 'history' && (
+                <div className="space-y-6">
+                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <h2 className="text-2xl font-heading uppercase tracking-widest">Transaction History</h2>
+                      <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Global Order Ledger</span>
+                   </div>
+                   
+                   <div className="bg-dark-grey/30 border border-white/5 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                           <thead className="bg-[#050505] text-[9px] font-bold uppercase tracking-widest text-white/30">
+                              <tr>
+                                 <th className="p-4 border-b border-white/5">Order Ref</th>
+                                 <th className="p-4 border-b border-white/5">Timestamp</th>
+                                 <th className="p-4 border-b border-white/5">Subject</th>
+                                 <th className="p-4 border-b border-white/5">Amount</th>
+                                 <th className="p-4 border-b border-white/5 text-right">Progress</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-white/5">
+                              {historyOrders.length === 0 ? (
+                                <tr><td colSpan={5} className="p-20 text-center text-white/10 font-bold uppercase tracking-widest">No transaction logs available</td></tr>
+                              ) : (
+                                historyOrders.map(order => (
+                                  <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
+                                     <td className="p-4 font-mono text-[10px] text-white/40 tracking-tighter">#{order.id.slice(-8).toUpperCase()}</td>
+                                     <td className="p-4 text-[10px] text-white/20 whitespace-nowrap">{new Date(order.created_at).toLocaleString()}</td>
+                                     <td className="p-4 font-heading text-[11px] uppercase truncate max-w-[150px]">{order.order_items?.[0]?.item_name || 'Multiple Assets'}</td>
+                                     <td className="p-4 font-heading text-[11px] text-white/60">{formatPrice(order.total_amount)}</td>
+                                     <td className="p-4 text-right">
+                                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border ${
+                                          order.status === 'paid' ? 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/5' : 'text-neon-pink border-neon-pink/30 bg-neon-pink/5'
+                                        }`}>
+                                           {order.status}
+                                        </span>
+                                     </td>
+                                  </tr>
+                                ))
+                              )}
+                           </tbody>
+                        </table>
+                      </div>
+                   </div>
+                </div>
+              )}
 
-                  <form onSubmit={handleUpdate} className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-[0.2em] text-white/40 mb-3">
-                          FULL NAME
-                        </label>
-                        <input
-                          type="text"
-                          disabled={!isEditing}
-                          value={name}
-                          onChange={e => setName(e.target.value)}
-                          className={`w-full bg-black border border-white/20 p-5 text-white font-bold tracking-wide focus:outline-none focus:border-neon-cyan transition-colors disabled:opacity-50 disabled:border-white/5`}
-                          required
-                        />
+              {activeSection === 'account' && (
+                <div className="space-y-6 max-w-2xl">
+                   <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-8">
+                      <h2 className="text-2xl font-heading uppercase tracking-widest">Account Information</h2>
+                      <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Registry Sync</span>
+                   </div>
+                   
+                   <form onSubmit={handleUpdate} className="space-y-8">
+                      <div className="space-y-2 group">
+                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-cyan transition-colors">Full Display Name</label>
+                         <div className="relative">
+                            <input 
+                              value={name} 
+                              onChange={e => setName(e.target.value)} 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-cyan transition-all" 
+                              placeholder="Enter your name"
+                            />
+                            <UserIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-cyan/20 transition-colors" size={20} />
+                         </div>
+                      </div>
+                      
+                      <div className="space-y-2 group">
+                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-cyan transition-colors">Primary Contact Email</label>
+                         <div className="relative">
+                            <input 
+                              value={email} 
+                              onChange={e => setEmail(e.target.value)} 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-cyan transition-all" 
+                              placeholder="Enter your email"
+                            />
+                            <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-cyan/20 transition-colors" size={20} />
+                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-[0.2em] text-white/40 mb-3">
-                          EMAIL ADDRESS
-                        </label>
-                        <input
-                          type="email"
-                          disabled={!isEditing}
-                          value={email}
-                          onChange={e => setEmail(e.target.value)}
-                          className={`w-full bg-black border border-white/20 p-5 text-white font-bold tracking-wide focus:outline-none focus:border-neon-cyan transition-colors disabled:opacity-50 disabled:border-white/5`}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    {isEditing && (
-                      <div className="flex flex-col sm:flex-row gap-6 pt-4">
-                        <button
-                          type="submit"
-                          disabled={isSaving}
-                          className="flex-1 bg-white text-black py-5 font-heading text-2xl uppercase tracking-widest hover:bg-neon-cyan transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                        >
-                          {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : 'OVERWRITE FILE'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelEdit}
-                          className="px-10 py-5 bg-transparent border border-white/20 font-heading text-xl text-white uppercase tracking-widest hover:border-white transition-all flex items-center justify-center gap-2"
-                        >
-                          <X className="w-5 h-5" /> CANCEL
-                        </button>
-                      </div>
-                    )}
-                  </form>
-                </section>
-
-                {/* Password Section */}
-                <section ref={passwordFormRef} className="pt-16 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-3xl font-heading uppercase tracking-tighter text-white flex items-center gap-4">
-                      <span className="w-8 h-1 bg-neon-pink"></span>
-                      SECURITY CLEARANCE
-                    </h2>
-                  </div>
-
-                  {isChangingPassword ? (
-                    <form onSubmit={handleChangePassword} className="space-y-8 bg-black/40 border border-neon-pink/30 p-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="md:col-span-2">
-                          <label className="block text-xs font-bold uppercase tracking-[0.2em] text-white/40 mb-3">
-                            CURRENT SECURITY KEY
-                          </label>
-                          <input
-                            type="password"
-                            value={oldPassword}
-                            onChange={e => setOldPassword(e.target.value)}
-                            className="w-full bg-black border border-white/20 p-5 text-white font-bold tracking-wide focus:outline-none focus:border-neon-pink transition-colors"
-                            placeholder="••••••••"
-                            required
-                          />
+                      {(error || success) && activeSection === 'account' && (
+                        <div className={`p-4 text-center font-bold text-[10px] uppercase tracking-widest animate-in fade-in slide-in-from-top-2 ${error ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
+                           {error || success}
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold uppercase tracking-[0.2em] text-white/40 mb-3">
-                            NEW KEY
-                          </label>
-                          <input
-                            type="password"
-                            value={newPassword}
-                            onChange={e => setNewPassword(e.target.value)}
-                            className="w-full bg-black border border-white/20 p-5 text-white font-bold tracking-wide focus:outline-none focus:border-neon-pink transition-colors"
-                            placeholder="••••••••"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold uppercase tracking-[0.2em] text-white/40 mb-3">
-                            RE-ENTER NEW KEY
-                          </label>
-                          <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={e => setConfirmPassword(e.target.value)}
-                            className="w-full bg-black border border-white/20 p-5 text-white font-bold tracking-wide focus:outline-none focus:border-neon-pink transition-colors"
-                            placeholder="••••••••"
-                            required
-                          />
-                        </div>
-                      </div>
+                      )}
 
-                      <div className="flex flex-col sm:flex-row gap-6 pt-4">
-                        <button
-                          type="submit"
-                          disabled={isSaving}
-                          className="flex-1 bg-neon-pink text-white py-5 font-heading text-2xl uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                        >
-                          {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : 'ROTATE KEYS'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelPassword}
-                          className="px-10 py-5 bg-transparent border border-white/20 font-heading text-xl text-white uppercase tracking-widest hover:border-white transition-all flex items-center justify-center gap-2"
-                        >
-                          <X className="w-5 h-5" /> CANCEL
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <div className="bg-black/40 border border-white/5 p-8 flex flex-col md:flex-row items-center justify-between gap-8 group hover:border-white/20 transition-all">
-                      <div className="flex items-start gap-6">
-                        <div className="bg-white/5 p-4 hidden sm:block">
-                          <ShieldCheck className="w-8 h-8 text-white/50 group-hover:text-neon-pink transition-colors" />
-                        </div>
-                        <div>
-                          <p className="text-xl font-heading uppercase tracking-widest text-white mb-2">UPDATE SECURITY CREDENTIALS</p>
-                          <p className="text-white/40 font-bold text-xs uppercase tracking-widest max-w-md leading-relaxed">
-                            REGULARLY ROTATE YOUR PASSWORD TO MAINTAIN MAXIMUM CLEARANCE AND PROTECT YOUR DIGITAL ASSETS.
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setIsChangingPassword(true);
-                          setIsEditing(false);
-                        }}
-                        className="bg-transparent border border-white/30 text-white px-8 py-4 font-heading uppercase text-xl tracking-widest hover:border-neon-pink hover:text-neon-pink transition-all flex-shrink-0"
+                      <button 
+                        type="submit" 
+                        disabled={isSaving}
+                        className="w-full py-5 bg-white text-black font-heading text-xl uppercase tracking-[0.2em] hover:bg-neon-cyan transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
                       >
-                        CHANGE PASSWORD
+                         {isSaving ? <Loader2 className="animate-spin" size={24} /> : 'Save Profile Changes'}
                       </button>
-                    </div>
-                  )}
-                </section>
+                   </form>
+                </div>
+              )}
 
-                {/* Orders Section */}
-                <section className="pt-16 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-3xl font-heading uppercase tracking-tighter text-white flex items-center gap-4">
-                      <span className="w-8 h-1 bg-neon-yellow"></span>
-                      TRANSACTION LOG
-                    </h2>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    {orders.length === 0 ? (
-                      <div className="p-16 border border-white/5 bg-black/50 text-center">
-                        <ShoppingBag className="w-16 h-16 mx-auto mb-6 text-white/20" />
-                        <p className="font-heading text-2xl uppercase tracking-widest text-white/40">NO TRANSACTIONS FOUND</p>
+              {activeSection === 'security' && (
+                <div className="space-y-6 max-w-2xl">
+                   <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-8">
+                      <h2 className="text-2xl font-heading uppercase tracking-widest">Security Settings</h2>
+                      <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Protocol Override</span>
+                   </div>
+                   
+                   <form onSubmit={handleChangePassword} className="space-y-8">
+                      <div className="space-y-2 group">
+                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-pink transition-colors">Current Password</label>
+                         <div className="relative">
+                            <input 
+                              type="password"
+                              value={oldPassword} 
+                              onChange={e => setOldPassword(e.target.value)} 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-pink transition-all" 
+                              placeholder="••••••••"
+                            />
+                            <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-pink/20 transition-colors" size={20} />
+                         </div>
                       </div>
-                    ) : (
-                      orders.map(order => (
-                        <div key={order.id} className="bg-black border border-white/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-white/30 transition-colors">
-                          <div className="flex items-center gap-6">
-                            <div className={`w-14 h-14 border flex items-center justify-center text-3xl font-heading ${
-                              order.status?.toLowerCase() === 'paid' ? 'border-neon-cyan/50 text-neon-cyan' : 
-                              order.status?.toLowerCase() === 'expired' ? 'border-neon-pink/50 text-neon-pink' : 
-                              'border-neon-yellow/50 text-neon-yellow'
-                            }`}>
-                              {order.status?.toLowerCase() === 'paid' ? '✔' : 
-                               order.status?.toLowerCase() === 'expired' ? 'X' : '...'}
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 mb-1">
-                                REF: ORDER-{order.id.slice(0, 8)}
-                              </p>
-                              <h3 className="font-heading text-xl uppercase tracking-widest text-white">
-                                {order.order_items?.[0]?.item_name || 'UNDEFINED ITEM'} 
-                                {(order.order_items?.length || 0) > 1 && ' [+MORE]'}
-                              </h3>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between md:justify-end gap-12">
-                            <div className="text-right">
-                               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 mb-1">VALUE</p>
-                               <p className="font-heading text-2xl tracking-widest text-white">
-                                 {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(order.total_amount)}
-                               </p>
-                            </div>
-                            <span className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest border ${
-                              order.status?.toLowerCase() === 'paid' ? 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan' : 
-                              order.status?.toLowerCase() === 'expired' ? 'bg-neon-pink/10 border-neon-pink text-neon-pink' :
-                              'bg-neon-yellow/10 border-neon-yellow text-neon-yellow'
-                            }`}>
-                              {order.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </section>
-              </div>
-            </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                         <div className="space-y-2 group">
+                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-pink transition-colors">New Password</label>
+                            <input 
+                              type="password"
+                              value={newPassword} 
+                              onChange={e => setNewPassword(e.target.value)} 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-lg text-white outline-none focus:border-neon-pink transition-all" 
+                              placeholder="Enter new"
+                            />
+                         </div>
+                         <div className="space-y-2 group">
+                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-pink transition-colors">Confirm New</label>
+                            <input 
+                              type="password"
+                              value={confirmPassword} 
+                              onChange={e => setConfirmPassword(e.target.value)} 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-lg text-white outline-none focus:border-neon-pink transition-all" 
+                              placeholder="Confirm new"
+                            />
+                         </div>
+                      </div>
 
-          </div>
-        </main>
-      </div>
-    </>
+                      {(error || success) && activeSection === 'security' && (
+                        <div className={`p-4 text-center font-bold text-[10px] uppercase tracking-widest animate-in fade-in slide-in-from-top-2 ${error ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
+                           {error || success}
+                        </div>
+                      )}
+
+                      <button 
+                        type="submit" 
+                        disabled={isSaving}
+                        className="w-full py-5 bg-white text-black font-heading text-xl uppercase tracking-[0.2em] hover:bg-neon-pink transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
+                      >
+                         {isSaving ? <Loader2 className="animate-spin" size={24} /> : 'Update Secure Password'}
+                      </button>
+                   </form>
+
+                   <div className="mt-12 p-6 border border-white/5 bg-white/[0.02]">
+                      <div className="flex gap-4">
+                         <Shield className="text-neon-cyan flex-shrink-0" size={24} />
+                         <div>
+                            <h4 className="text-sm font-bold uppercase tracking-widest mb-1">Account Protection Enabled</h4>
+                            <p className="text-white/40 text-xs leading-relaxed">Your account is secured with standard encryption protocols. To maintain safety, avoid using reused passwords and regularly update your credentials.</p>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+              )}
+
+           </div>
+        </div>
+      </main>
+
+      {/* Item Detail Modal (Standardized) */}
+      {selectedItem && (
+         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl p-6 flex items-center justify-center animate-in fade-in duration-300">
+            <div className="absolute inset-0" onClick={() => setSelectedItem(null)}></div>
+            <div className="max-w-md w-full bg-[#111] border border-white/10 p-10 relative animate-in zoom-in-95 duration-500 shadow-[0_0_100px_rgba(0,0,0,1)]">
+                <button 
+                  onClick={() => setSelectedItem(null)} 
+                  className="absolute top-6 right-6 text-white/30 hover:text-white transition-colors"
+                >
+                   <X size={24} />
+                </button>
+                
+                <div className="space-y-10 text-center">
+                   <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-neon-cyan mb-4">
+                         {selectedItem.item_type === 'ticket' ? <Ticket size={32} /> : <ShoppingBag size={32} />}
+                      </div>
+                      <h2 className="text-4xl font-heading uppercase border-b-2 border-neon-cyan pb-2 inline-block mb-2">{selectedItem.item_name}</h2>
+                      <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Proprietary Digital Asset</p>
+                   </div>
+                   
+                   <div className="w-full aspect-square bg-[#050505] border border-white/5 p-8 flex items-center justify-center relative">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
+                         <QrCode size={250} />
+                      </div>
+                      <div className="relative z-10 p-4 bg-white rounded-lg">
+                         <QrCode className="w-40 h-40 text-black" />
+                      </div>
+                   </div>
+                   
+                   <div className="p-4 bg-white/5 rounded-sm border border-white/10">
+                      <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-2">Identification Code</p>
+                      <p className="font-mono text-neon-cyan text-sm tracking-widest select-all">REF-{selectedItem.orderId?.toUpperCase()}</p>
+                   </div>
+                   
+                   <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest leading-relaxed">
+                      Present this interface at the authorized checkpoint for validation. Ownership is non-transferable via this node.
+                   </p>
+                </div>
+            </div>
+         </div>
+      )}
+    </div>
   );
 };
 
