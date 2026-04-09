@@ -167,8 +167,8 @@ const ResetPasswordPage: React.FC = () => {
               ) : (
                 <div className="text-center py-6">
                   <div className="flex justify-center mb-10">
-                    <div className="w-24 h-24 bg-neon-cyan/10 rounded-full flex items-center justify-center border border-neon-cyan">
-                      <CheckCircle2 className="w-12 h-12 text-neon-cyan" />
+                    <div className="w-24 h-24 bg-neon-pink/10 rounded-full flex items-center justify-center border border-neon-pink">
+                      <CheckCircle2 className="w-12 h-12 text-neon-pink" />
                     </div>
                   </div>
                   <h2 className="text-4xl md:text-5xl font-heading uppercase tracking-tighter text-white mb-6">KEY UPDATED!</h2>

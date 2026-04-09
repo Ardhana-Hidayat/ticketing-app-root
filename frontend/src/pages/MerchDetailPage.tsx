@@ -62,7 +62,7 @@ const MerchDetailPage: React.FC = () => {
           color: transparent;
         }
       `}</style>
-      <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-yellow selection:text-black overflow-x-hidden">
+      <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-pink selection:text-white overflow-x-hidden">
         {/* Navbar */}
         <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
           <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-6 flex items-center justify-between">
@@ -73,7 +73,7 @@ const MerchDetailPage: React.FC = () => {
             </Link>
             <button
               onClick={() => navigate(-1)}
-              className="group flex items-center gap-3 text-white/50 hover:text-neon-yellow transition-colors font-bold uppercase tracking-[0.2em] text-sm"
+              className="group flex items-center gap-3 text-white/50 hover:text-neon-pink transition-colors font-bold uppercase tracking-[0.2em] text-sm"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-2 transition-transform" /> BACK TO SHOP
             </button>
@@ -82,7 +82,7 @@ const MerchDetailPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-neon-yellow">
+          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-neon-pink">
             <Loader2 className="w-16 h-16 animate-spin" />
             <p className="font-heading text-3xl uppercase tracking-widest animate-pulse">LOADING MERCH...</p>
           </div>
@@ -95,7 +95,7 @@ const MerchDetailPage: React.FC = () => {
             <h2 className="text-6xl md:text-8xl font-heading uppercase tracking-tighter text-white mb-6">ITEM <span className="text-outline">NOT FOUND</span></h2>
             <p className="text-2xl font-bold text-white/50 mb-12 uppercase tracking-[0.2em]">{error}</p>
             <Link to="/">
-              <button className="bg-white text-black px-12 py-6 font-heading text-3xl tracking-widest hover:bg-neon-yellow hover:text-black transition-all transform hover:-rotate-2 uppercase">
+              <button className="bg-white text-black px-12 py-6 font-heading text-3xl tracking-widest hover:bg-neon-pink hover:text-white transition-all transform hover:-rotate-2 uppercase">
                 RETURN TO SHOP
               </button>
             </Link>
@@ -130,7 +130,7 @@ const MerchDetailPage: React.FC = () => {
               {/* Right: Details Column */}
               <div className="flex flex-col h-full bg-black">
                 <div className="mb-6 flex items-center gap-4">
-                  <span className="text-neon-yellow font-bold uppercase tracking-[0.3em] text-sm">OFFICIAL MERCHANDISE</span>
+                  <span className="text-neon-pink font-bold uppercase tracking-[0.3em] text-sm">OFFICIAL MERCHANDISE</span>
                   <div className="h-[1px] w-12 bg-white/20"></div>
                   <span className="text-white/30 font-bold uppercase tracking-[0.3em] text-xs">SKU: MERCH-{merch.id}</span>
                 </div>
@@ -144,7 +144,7 @@ const MerchDetailPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4 mb-10 text-white/50 border-b border-white/10 pb-10">
-                  <Package className="w-6 h-6 text-neon-yellow" />
+                  <Package className="w-6 h-6 text-neon-pink" />
                   <span className="font-bold uppercase tracking-[0.2em] text-sm">
                     AVAILABLE STOCK: {merch.stock}
                   </span>
@@ -162,7 +162,7 @@ const MerchDetailPage: React.FC = () => {
                       <div className="flex items-center border border-white/20 bg-dark-grey">
                         <button
                           onClick={() => setQty(q => Math.max(1, q - 1))}
-                          className="px-6 py-4 text-white hover:text-neon-yellow hover:bg-white/5 transition-colors font-heading text-2xl"
+                          className="px-6 py-4 text-white hover:text-neon-pink hover:bg-white/5 transition-colors font-heading text-2xl"
                         >
                           −
                         </button>
@@ -171,7 +171,7 @@ const MerchDetailPage: React.FC = () => {
                         </span>
                         <button
                           onClick={() => setQty(q => Math.min(merch.stock, q + 1))}
-                          className="px-6 py-4 text-white hover:text-neon-yellow hover:bg-white/5 transition-colors font-heading text-2xl"
+                          className="px-6 py-4 text-white hover:text-neon-pink hover:bg-white/5 transition-colors font-heading text-2xl"
                         >
                           +
                         </button>
@@ -194,8 +194,8 @@ const MerchDetailPage: React.FC = () => {
                       className={`w-full py-6 font-heading text-2xl md:text-3xl uppercase tracking-widest transition-all flex items-center justify-center gap-4 ${
                         isOutOfStock
                           ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
-                          : 'bg-white text-black hover:bg-neon-yellow hover:text-black transform hover:-rotate-1'
-                      }`}
+                          : 'bg-white text-black hover:bg-neon-pink hover:text-white transform hover:-rotate-1'
+                      } shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all`}
                     >
                       <ShoppingCart className="w-8 h-8" />
                       {isOutOfStock ? 'OUT OF STOCK' : 'BUY IT NOW'}
@@ -204,7 +204,7 @@ const MerchDetailPage: React.FC = () => {
                     {!isOutOfStock && (
                       <button
                         onClick={handleAddToCart}
-                        className="w-full py-5 border border-white/20 text-white/70 font-heading text-xl md:text-2xl uppercase tracking-widest hover:border-neon-yellow hover:text-neon-yellow transition-colors flex items-center justify-center gap-3 bg-dark-grey/50"
+                        className="w-full py-5 border border-white/20 text-white/70 font-heading text-xl md:text-2xl uppercase tracking-widest hover:border-white hover:text-white transition-colors flex items-center justify-center gap-3 bg-dark-grey/50"
                       >
                         <Package className="w-6 h-6" /> ADD TO CART
                       </button>
@@ -212,9 +212,9 @@ const MerchDetailPage: React.FC = () => {
                   </div>
                   
                   <div className="mt-8 flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-[0.2em] text-white/30">
-                    <span className="w-2 h-2 bg-neon-cyan/50 rounded-full"></span>
+                    <span className="w-2 h-2 bg-neon-pink/50 rounded-full"></span>
                     NATIONWIDE SHIPPING AVAILABLE
-                    <span className="w-2 h-2 bg-neon-cyan/50 rounded-full"></span>
+                    <span className="w-2 h-2 bg-neon-pink/50 rounded-full"></span>
                   </div>
                 </div>
               </div>

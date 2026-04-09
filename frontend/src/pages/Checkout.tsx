@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { orderApi, authApi } from '@/services/api';
 import { useCart } from '@/context/CartContext';
-import { ArrowLeft, AlertCircle, Loader2, User, ShieldCheck, ShoppingBag, CreditCard, Lock, ChevronRight } from 'lucide-react';
+import { User, ShieldCheck, Lock, ChevronRight } from 'lucide-react';
 
 const Checkout: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -87,7 +87,7 @@ const Checkout: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center px-6 selection:bg-neon-pink">
-        <div className="w-20 h-20 mb-10 border-4 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-20 h-20 mb-10 border-4 border-neon-pink border-t-transparent rounded-full animate-spin shadow-[0_0_20px_rgba(255,0,128,0.3)]"></div>
         <h1 className="text-4xl font-heading text-white mb-2 uppercase tracking-widest">Processing Transaction</h1>
         <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Do not close this window...</p>
       </div>
@@ -106,11 +106,11 @@ const Checkout: React.FC = () => {
         <header className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
           <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-4 group">
-               <div className="w-10 h-10 bg-white text-black font-heading text-3xl flex items-center justify-center hover:bg-neon-cyan transition-colors">K</div>
+               <div className="w-10 h-10 bg-white text-black font-heading text-3xl flex items-center justify-center hover:bg-neon-pink transition-colors">K</div>
                <span className="text-2xl font-heading uppercase tracking-tighter hidden md:inline">Synchronizing Order</span>
             </Link>
             <div className="flex items-center gap-4 text-[10px] font-bold text-white/30 uppercase tracking-widest">
-               <Lock size={14} className="text-neon-cyan" /> Secure Infrastructure Active
+               <Lock size={14} className="text-neon-pink" /> Secure Infrastructure Active
             </div>
           </div>
         </header>
@@ -131,7 +131,7 @@ const Checkout: React.FC = () => {
               <div className="bg-dark-grey border border-white/5 rounded-sm">
                 <div className="p-8 border-b border-white/5 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                     <span className="w-8 h-8 rounded-full bg-neon-cyan text-black font-bold flex items-center justify-center text-xs">01</span>
+                     <span className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center text-xs">01</span>
                      <h2 className="text-xl font-bold uppercase tracking-[0.2em]">Review Selection</h2>
                   </div>
                   <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{checkoutItems.length} ITEM(S)</span>
@@ -140,11 +140,11 @@ const Checkout: React.FC = () => {
                   {checkoutItems.map((item, idx) => (
                     <div key={idx} className="p-8 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
                       <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-black border border-white/10 flex items-center justify-center text-3xl group-hover:border-neon-cyan transition-colors">
+                        <div className="w-16 h-16 bg-black border border-white/10 flex items-center justify-center text-3xl group-hover:border-neon-pink transition-colors">
                            {item.type === 'ticket' ? '🎟️' : '🛍️'}
                         </div>
                         <div>
-                           <p className="font-heading uppercase text-xl text-white group-hover:text-neon-cyan transition-colors">{item.name}</p>
+                           <p className="font-heading uppercase text-xl text-white group-hover:text-neon-pink transition-colors">{item.name}</p>
                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mt-1">QTY: {item.quantity} // TYPE: {item.type}</p>
                         </div>
                       </div>
@@ -171,8 +171,8 @@ const Checkout: React.FC = () => {
                       </div>
                    </div>
                    <div className="px-5 py-2 grow-0 bg-white/5 border border-white/5 rounded-full flex items-center gap-3">
-                      <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_10px_#00E5FF]" />
-                      <span className="text-[10px] font-bold text-neon-cyan uppercase tracking-widest">Identity Confirmed</span>
+                      <div className="w-2 h-2 bg-neon-pink rounded-full animate-pulse shadow-[0_0_10px_#FF0080]" />
+                      <span className="text-[10px] font-bold text-neon-pink uppercase tracking-widest">Identity Confirmed</span>
                    </div>
                 </div>
               </div>
@@ -180,20 +180,20 @@ const Checkout: React.FC = () => {
               {/* Step 3: Payment Hub */}
               <div className="bg-dark-grey border border-white/5 rounded-sm">
                 <div className="p-8 border-b border-white/5 flex items-center gap-4">
-                   <span className="w-8 h-8 rounded-full bg-neon-yellow text-black font-bold flex items-center justify-center text-xs">03</span>
+                   <span className="w-8 h-8 rounded-full bg-neon-pink text-white font-bold flex items-center justify-center text-xs">03</span>
                    <h2 className="text-xl font-bold uppercase tracking-[0.2em]">Transaction Gateway</h2>
                 </div>
                 <div className="p-10">
-                   <div className="p-8 border-2 border-neon-cyan bg-black flex items-center justify-between group hover:shadow-[0_0_30px_rgba(0,229,255,0.1)] transition-all">
+                   <div className="p-8 border-2 border-neon-pink bg-black flex items-center justify-between group hover:shadow-[0_0_30px_rgba(255,0,128,0.1)] transition-all">
                       <div className="flex items-center gap-6">
-                         <div className="w-16 h-16 bg-dark-grey border border-white/10 flex items-center justify-center text-3xl font-heading text-neon-cyan group-hover:bg-white group-hover:text-black transition-all">X</div>
+                         <div className="w-16 h-16 bg-dark-grey border border-white/10 flex items-center justify-center text-3xl font-heading text-neon-pink group-hover:bg-white group-hover:text-black transition-all">X</div>
                          <div>
                             <p className="text-xl font-heading uppercase text-white mb-1">XENDIT_HUB</p>
                             <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Global Link Node_V4</p>
                          </div>
                       </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-neon-cyan flex items-center justify-center group-hover:shadow-[0_0_15px_#00E5FF]">
-                         <div className="w-3 h-3 rounded-full bg-neon-cyan"></div>
+                      <div className="w-6 h-6 rounded-full border-2 border-neon-pink flex items-center justify-center group-hover:shadow-[0_0_15px_#FF0080]">
+                         <div className="w-3 h-3 rounded-full bg-neon-pink"></div>
                       </div>
                    </div>
                 </div>

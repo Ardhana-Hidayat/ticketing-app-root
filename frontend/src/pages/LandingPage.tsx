@@ -19,17 +19,17 @@ function formatPrice(price: number) {
 
 const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false, textColor = "text-white" }: { text: string, bgClass: string, rotateClass: string, reverse?: boolean, textColor?: string }) => {
   const marqueeRef = useRef<HTMLDivElement>(null);
-  const currentSpeedRef = useRef(1);
-  const targetSpeedRef = useRef(1);
+  const currentSpeedRef = useRef(0.5);
+  const targetSpeedRef = useRef(0.5);
   const xRef = useRef(reverse ? -50 : 0);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      targetSpeedRef.current = 3;
+      targetSpeedRef.current = 1.5;
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
       scrollTimeout.current = setTimeout(() => {
-        targetSpeedRef.current = 1;
+        targetSpeedRef.current = 0.5;
       }, 100);
     };
     window.addEventListener('scroll', handleScroll);
@@ -58,10 +58,17 @@ const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false, textColor 
 
   return (
     <div className={`w-full ${bgClass} ${textColor} border-y border-white/10 py-3 md:py-5 flex overflow-hidden transform ${rotateClass}`}>
-      <div ref={marqueeRef} className="flex w-[200%] items-center will-change-transform">
-        <span className="text-2xl md:text-4xl font-heading uppercase tracking-tighter whitespace-nowrap">
-          {text}
-        </span>
+      <div ref={marqueeRef} className="flex items-center will-change-transform">
+        {[...Array(40)].map((_, i) => (
+          <span 
+            key={i} 
+            className={`text-2xl md:text-5xl font-heading uppercase tracking-tighter whitespace-nowrap px-4 flex items-center ${
+              i % 2 === 1 ? 'text-outline' : ''
+            }`}
+          >
+            {text}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -70,7 +77,7 @@ const MarqueeBanner = ({ text, bgClass, rotateClass, reverse = false, textColor 
 const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { getItemCount, isCartOpen, setIsCartOpen } = useCart();
-  const marqueeText = "GIXS DI KOTA • ".repeat(30);
+  const marqueeText = "GIXS DI KOTA";
 
   const MOCK_LINEUP = [
     { id: 9991, title: 'DAVE THE PAPS', start_date: '2026-12-01T20:00:00Z', banner_url: daveImg, location: 'MAIN STAGE', description: 'Legendary Indonesian Reggae', publish_status: 'published' },
@@ -226,8 +233,8 @@ const LandingPage: React.FC = () => {
             </Link>
 
             <div className="hidden lg:flex items-center space-x-8 xl:space-x-12 text-sm md:text-xs xl:text-sm font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              <a href="#merchandise" className="hover:text-neon-yellow transition-colors">MERCHANDISE</a>
-              <a href="#lineup" className="hover:text-neon-blue transition-colors">LINE UP</a>
+              <a href="#merchandise" className="hover:text-neon-pink transition-colors">MERCHANDISE</a>
+              <a href="#lineup" className="hover:text-neon-pink transition-colors">FEATURED SHOW</a>
               <a href="#about" className="hover:text-neon-pink transition-colors">About Us</a>
 
               <div className="flex items-center gap-4 ml-4">
@@ -235,8 +242,8 @@ const LandingPage: React.FC = () => {
                   TICKET
                 </a>
 
-                <button onClick={() => setIsCartOpen(true)} className="relative group w-[46px] h-[46px] bg-black border border-white/20 hover:border-neon-cyan transition-colors flex items-center justify-center">
-                  <i className="fa-solid fa-cart-shopping text-[18px] text-[#ddd] group-hover:text-neon-cyan transition-colors"></i>
+                <button onClick={() => setIsCartOpen(true)} className="relative group w-[46px] h-[46px] bg-black border border-white/20 hover:border-neon-pink transition-colors flex items-center justify-center">
+                  <i className="fa-solid fa-cart-shopping text-[18px] text-[#ddd] group-hover:text-neon-pink transition-colors"></i>
                   {getItemCount() > 0 && (
                     <span className="absolute -top-2 -right-2 bg-neon-pink text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                       {getItemCount()}
@@ -281,11 +288,11 @@ const LandingPage: React.FC = () => {
             <div className="flex-1 flex flex-col px-10 overflow-y-auto pb-10 scrollbar-hide">
               <div className="flex flex-col items-start space-y-6 text-2xl font-bold uppercase tracking-[0.2em] w-full">
                 <a href="#" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-pink transition-colors w-full border-b border-white/10 pb-4">Home</a>
-                <a href="#lineup" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-cyan transition-colors w-full border-b border-white/10 pb-4">Line Up</a>
-                <a href="#shop" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-yellow transition-colors w-full border-b border-white/10 pb-4">Shop</a>
+                <a href="#lineup" onClick={() => setIsMenuOpen(false)} className="hover:text-white transition-colors w-full border-b border-white/10 pb-4">Featured Show</a>
+                <a href="#merchandise" onClick={() => setIsMenuOpen(false)} className="hover:text-neon-pink transition-colors w-full border-b border-white/10 pb-4">Shop</a>
 
                 {/* Cart di Mobile */}
-                <button onClick={() => { setIsMenuOpen(false); setIsCartOpen(true); }} className="hover:text-neon-cyan transition-colors w-full border-b border-white/10 pb-4 flex items-center justify-between text-left">
+                <button onClick={() => { setIsMenuOpen(false); setIsCartOpen(true); }} className="hover:text-white transition-colors w-full border-b border-white/10 pb-4 flex items-center justify-between text-left">
                   <span>Cart</span>
                   {getItemCount() > 0 && (
                     <span className="bg-neon-pink text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
@@ -350,7 +357,7 @@ const LandingPage: React.FC = () => {
 
           {/* Ambient Lighting Override */}
           <div className="absolute top-[10%] left-[-10%] w-[60%] h-[60%] bg-neon-pink/20 rounded-full blur-[120px] animate-pulse z-0 mix-blend-overlay"></div>
-          <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-neon-cyan/20 rounded-full blur-[120px] animate-pulse z-0 mix-blend-overlay" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-neon-pink/10 rounded-full blur-[120px] animate-pulse z-0 mix-blend-overlay" style={{ animationDelay: '2s' }}></div>
 
         </section>
 
@@ -363,14 +370,44 @@ const LandingPage: React.FC = () => {
           />
         </div>
 
+        <section className="bg-black py-40 relative overflow-hidden grid-background border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-6 flex flex-col items-center text-center relative z-10">
+            <div className="flex items-center gap-4 text-white/40 font-bold uppercase tracking-[0.4em] text-[10px] mb-12">
+              <span className="text-neon-pink">»</span> ABOUT KLIXTICKET 2026 <span className="text-neon-pink">«</span>
+            </div>
+            
+            <div className="bg-white text-black px-8 md:px-12 py-4 md:py-6 mb-16 rotate-[-1deg] inline-block shadow-[10px_10px_0px_0px_rgba(255,255,255,0.1)]">
+              <h2 className="text-6xl md:text-[10rem] font-heading leading-none uppercase tracking-tighter">
+                KLIXTICKET 2026
+              </h2>
+            </div>
+            
+            <p className="max-w-3xl text-2xl md:text-5xl font-heading text-white/90 leading-tight mb-20 uppercase tracking-tight">
+              GIXS DI KOTA - MADIUN<br className="hidden md:block" />
+              10 APRIL 2026, 8.00 PM
+            </p>
+          </div>
+          
+          {/* Decorative Elements */}
+          <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+            <div className="absolute top-1/4 -left-20 w-64 h-64 border border-neon-pink rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/4 -right-20 w-64 h-64 border border-white/20 rounded-full blur-3xl"></div>
+          </div>
+        </section>
+
+
+
         <section id="tickets" className="bg-black py-40 border-t border-white/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-neon-cyan/5 rounded-full blur-[100px]"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-neon-pink/5 rounded-full blur-[100px]"></div>
 
           <div className="max-w-[1400px] mx-auto px-4 md:px-8 relative z-10">
             <div className="text-center mb-32">
-              <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter mb-6 uppercase">
+              <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter uppercase">
                 TICKET <span className="text-outline">INFORMATION</span>
               </h2>
+              <p className="text-white/40 font-bold uppercase tracking-[0.4em] text-xs mt-4 md:mt-8">
+                SECURE YOUR SPOT FOR THE MOST ANTICIPATED EVENT OF THE YEAR
+              </p>
             </div>
 
             <div className="w-full">
@@ -404,7 +441,7 @@ const LandingPage: React.FC = () => {
                             )}
                             
                             <div className="mb-10">
-                              <span className="text-neon-cyan font-bold tracking-[0.3em] text-[10px] mb-4 block uppercase opacity-60">
+                              <span className="text-white/40 font-bold tracking-[0.3em] text-[10px] mb-4 block uppercase opacity-60">
                                 TIER CATEGORY
                               </span>
                               <h3 className="text-4xl font-heading leading-none mb-6 group-hover:text-neon-pink transition-colors uppercase">
@@ -442,7 +479,7 @@ const LandingPage: React.FC = () => {
                             )}
 
                             {!isSoldOut && (
-                              <div className="mt-6 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-neon-cyan">
+                              <div className="mt-6 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-neon-pink">
                                 <i className="fa-solid fa-bolt text-xs"></i>
                                 <span>{ticket.remaining_quota} SEATS LEFT</span>
                               </div>
@@ -458,30 +495,33 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section id="shop" className="bg-black py-40 border-t border-white/10 grid-background">
+        <section id="merchandise" className="bg-black py-40 border-t border-white/10 grid-background">
           <div className="max-w-[1400px] mx-auto px-4 md:px-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-32 gap-8">
               <div>
                 <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter uppercase">
                   MERCH<span className="text-outline">ANDISE</span>
                 </h2>
+                <p className="text-white/40 font-bold uppercase tracking-[0.4em] text-xs mt-4 md:mt-8">
+                  WEAR THE ENERGY. OFFICIAL LIMITED EDITION DROPS
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
               {!merchLoading && apiMerch.length === 0 && (
                 <div className="group cursor-pointer">
-                  <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-yellow group-hover:-translate-y-2">
+                  <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-pink group-hover:-translate-y-2">
                     <img src={tshirtImg} alt="Official Tee" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" />
                   </div>
-                  <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-yellow transition-colors uppercase">Soundrenaline Tee</h3>
+                  <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-pink transition-colors uppercase">Soundrenaline Tee</h3>
                   <p className="text-2xl font-heading text-white/40 mt-2 tracking-tighter">RP 180.000</p>
                 </div>
               )}
 
               {apiMerch.slice(0, 4).map(item => (
                 <Link to={`/merchandise/${item.id}`} key={item.id} className="group cursor-pointer">
-                  <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-yellow group-hover:-translate-y-2">
+                  <div className="relative aspect-square bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-pink group-hover:-translate-y-2">
                     <img 
                       src={formatImageURL(item.image_url)} 
                       alt={item.name} 
@@ -489,7 +529,7 @@ const LandingPage: React.FC = () => {
                       onError={(e) => (e.currentTarget.src = "/fallback.png")}
                     />
                   </div>
-                  <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-yellow transition-colors uppercase line-clamp-1">{item.name}</h3>
+                  <h3 className="text-4xl font-heading tracking-tighter group-hover:text-neon-pink transition-colors uppercase line-clamp-1">{item.name}</h3>
                   <p className="text-2xl font-heading text-white/40 mt-2 tracking-tighter">{formatPrice(item.price)}</p>
                 </Link>
               ))}
@@ -504,8 +544,11 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-6">
               <div>
                 <h2 className="text-8xl md:text-[12rem] font-heading leading-none tracking-tighter uppercase">
-                  OFFICIAL <span className="text-outline">LINEUP</span>
+                  FEATURED <span className="text-outline">SHOW</span>
                 </h2>
+                <p className="text-white/40 font-bold uppercase tracking-[0.4em] text-xs mt-4 md:mt-8">
+                  THE STAGE IS SET. WITNESS THE ARTISTS WHO DEFINE THE SOUND
+                </p>
               </div>
             </div>
           </div>
@@ -525,15 +568,15 @@ const LandingPage: React.FC = () => {
             >
               {[...MOCK_LINEUP, ...MOCK_LINEUP].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="group cursor-pointer w-[450px] md:w-[700px] flex-shrink-0">
-                  <div className="relative w-full aspect-[16/9] bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-cyan group-hover:-translate-y-2">
+                  <div className="relative w-full aspect-[16/9] bg-dark-grey border border-white/5 overflow-hidden mb-8 transition-all group-hover:border-neon-pink group-hover:-translate-y-2">
                      <img src={item.banner_url} alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 pointer-events-none" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-10">
-                      <span className="text-neon-cyan font-bold tracking-[0.6em] text-sm flex items-center gap-3 uppercase">
-                        ARTIST PROFILE <i className="fa-solid fa-arrow-right text-xl"></i>
+                      <span className="text-white font-bold tracking-[0.6em] text-sm flex items-center gap-3 uppercase">
+                        WATCH PREVIEW <i className="fa-solid fa-arrow-right text-xl"></i>
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-6xl md:text-8xl font-heading tracking-tighter group-hover:text-neon-cyan transition-colors line-clamp-1 uppercase">{item.title}</h3>
+                  <h3 className="text-6xl md:text-8xl font-heading tracking-tighter group-hover:text-neon-pink transition-colors line-clamp-1 uppercase">{item.title}</h3>
                   <div className="flex items-center gap-6 mt-4">
                     <span className="text-2xl font-heading text-white/30 uppercase tracking-tighter">
                       {item.description}
@@ -549,21 +592,31 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <MarqueeBanner text={marqueeText} bgClass="bg-neon-cyan" rotateClass="" reverse={true} textColor="text-black" />
+        <MarqueeBanner text={marqueeText} bgClass="bg-neon-pink" rotateClass="" reverse={true} />
 
-        <footer className="bg-black text-white pt-32 pb-20 border-t border-white/5 relative">
-          <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/5 via-black to-black opacity-50"></div>
+        <footer id="about" className="bg-black text-white pt-40 pb-20 border-t border-white/5 relative overflow-hidden">
+          {/* Ambient Fillers */}
+          <div className="absolute top-1/4 left-0 w-96 h-96 bg-neon-pink/5 rounded-full blur-[120px] pointer-events-none"></div>
+          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+          {/* Large Watermark Text */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full overflow-hidden pointer-events-none select-none flex items-center justify-center z-0">
+             <span className="text-[25vw] font-heading font-black text-white/[0.03] uppercase tracking-tighter leading-none whitespace-nowrap rotate-[-10deg]">
+               KLIX 2026
+             </span>
+          </div>
+
           <div className="max-w-[1400px] mx-auto px-4 md:px-8 flex flex-col items-center relative z-10">
             {/* Logo */}
-            <div className="mb-16">
-              <img src={logoImg} alt="KlixTicket Logo" className="h-24 md:h-32 object-contain" />
+            <div className="mb-20">
+              <img src={logoImg} alt="KlixTicket Logo" className="h-28 md:h-36 object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]" />
             </div>
 
             {/* Divider and Icons */}
             <div className="w-full flex items-center justify-center mb-24 opacity-60">
               <div className="flex-1 h-[1px] bg-white/20"></div>
               <div className="flex justify-center">
-                <a href="#" className="flex items-center text-3xl hover:text-neon-pink transition-colors focus:outline-none">
+                <a href="https://www.instagram.com/soundsajang" target="_blank" className="flex items-center text-3xl hover:text-neon-pink transition-colors focus:outline-none">
                   {/* Icon */}
                   <i className="fa-brands fa-instagram"></i>
 

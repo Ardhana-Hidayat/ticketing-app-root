@@ -37,7 +37,7 @@ const ForgotPasswordPage: React.FC = () => {
       <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-yellow selection:text-black flex flex-col overflow-x-hidden relative">
         
         {/* Background glow effects */}
-        <div className="absolute top-[20%] left-[10%] w-[40%] h-[40%] bg-neon-yellow/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-[20%] left-[10%] w-[40%] h-[40%] bg-neon-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
 
         {/* Navbar */}
         <nav className="w-full bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
@@ -49,7 +49,7 @@ const ForgotPasswordPage: React.FC = () => {
             </Link>
             <Link 
               to="/login" 
-              className="flex items-center gap-3 text-white/50 hover:text-neon-yellow font-bold uppercase tracking-[0.2em] transition-colors"
+              className="flex items-center gap-3 text-white/50 hover:text-neon-pink font-bold uppercase tracking-[0.2em] transition-colors"
             >
               <ArrowLeft className="w-5 h-5" /> 
               <span>RETURN</span>
@@ -62,7 +62,7 @@ const ForgotPasswordPage: React.FC = () => {
           <div className="w-full max-w-lg">
             
             <div className="bg-dark-grey border border-white/10 p-10 md:p-14 relative overflow-hidden backdrop-blur-xl">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-neon-yellow/5 blur-3xl pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-neon-pink/5 blur-3xl pointer-events-none"></div>
 
               {!isSubmitted ? (
                 <>
@@ -71,7 +71,7 @@ const ForgotPasswordPage: React.FC = () => {
                     <h1 className="text-4xl md:text-6xl font-heading uppercase tracking-tighter text-white leading-none mb-4">
                       RECOVER <span className="text-outline">ACCESS</span>
                     </h1>
-                    <div className="w-24 h-1 bg-neon-yellow mb-6" />
+                    <div className="w-24 h-1 bg-neon-pink mb-6" />
                     <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-xs leading-relaxed">
                       ENTER YOUR REGISTERED EMAIL TO RECEIVE PASSWORD RESET INSTRUCTIONS.
                     </p>
@@ -96,14 +96,14 @@ const ForgotPasswordPage: React.FC = () => {
                         onChange={e => setEmail(e.target.value)}
                         required
                         placeholder="user@example.com"
-                        className="w-full bg-black border border-white/20 p-4 text-white placeholder-white/20 focus:outline-none focus:border-neon-yellow transition-colors font-bold tracking-wide"
+                        className="w-full bg-black border border-white/20 p-4 text-white placeholder-white/20 focus:outline-none focus:border-neon-pink transition-colors font-bold tracking-wide"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={isLoading || !email}
-                      className="w-full bg-white text-black py-5 font-heading text-2xl uppercase tracking-widest hover:bg-neon-yellow hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-8 transform hover:scale-105"
+                      className="w-full bg-white text-black py-5 font-heading text-2xl uppercase tracking-widest hover:bg-neon-pink hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-8 transform hover:scale-105"
                     >
                       {isLoading ? (
                         <>
@@ -119,13 +119,13 @@ const ForgotPasswordPage: React.FC = () => {
               ) : (
                 <div className="text-center py-4">
                   <div className="flex justify-center mb-10">
-                    <div className="w-24 h-24 bg-neon-cyan/10 rounded-full flex items-center justify-center border border-neon-cyan">
-                      <CheckCircle2 className="w-12 h-12 text-neon-cyan" />
+                    <div className="w-24 h-24 bg-neon-pink/10 rounded-full flex items-center justify-center border border-neon-pink">
+                      <CheckCircle2 className="w-12 h-12 text-neon-pink" />
                     </div>
                   </div>
                   <h2 className="text-4xl md:text-5xl font-heading uppercase tracking-tighter text-white mb-6">SIGNAL SENT</h2>
                   <p className="text-white/50 font-bold uppercase tracking-widest text-xs mb-12 leading-relaxed">
-                    IF <span className="text-neon-cyan font-black">{email}</span> EXISTS IN OUR DATABASE, A RECOVERY LINK HAS BEEN DISPATCHED.
+                    IF <span className="text-neon-pink font-black">{email}</span> EXISTS IN OUR DATABASE, A RECOVERY LINK HAS BEEN DISPATCHED.
                   </p>
 
                   <Link

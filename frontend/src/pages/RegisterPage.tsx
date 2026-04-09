@@ -68,7 +68,7 @@ const RegisterPage: React.FC = () => {
             </Link>
             <Link 
               to="/login" 
-              className="hidden md:block bg-white text-black px-8 py-3 font-heading text-xl tracking-wider hover:bg-neon-cyan hover:text-black transition-all transform hover:scale-105 uppercase"
+              className="hidden md:block bg-white text-black px-8 py-3 font-heading text-xl tracking-wider hover:bg-neon-pink hover:text-white transition-all transform hover:scale-105 uppercase"
             >
               LOGIN
             </Link>
@@ -114,7 +114,7 @@ const RegisterPage: React.FC = () => {
                     onChange={e => setName(e.target.value)}
                     required
                     placeholder="Enter your name"
-                    className="w-full bg-black border border-white/20 p-4 text-white placeholder-white/20 focus:outline-none focus:border-neon-cyan transition-colors font-bold tracking-wide"
+                    className="w-full bg-black border border-white/20 p-4 text-white placeholder-white/20 focus:outline-none focus:border-neon-pink transition-colors font-bold tracking-wide"
                   />
                 </div>
 
@@ -175,7 +175,7 @@ const RegisterPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-white text-black py-5 font-heading text-2xl uppercase tracking-widest hover:bg-neon-cyan transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-8 transform hover:scale-105"
+                  className="w-full bg-white text-black py-5 font-heading text-2xl uppercase tracking-widest hover:bg-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-8 transform hover:scale-105"
                 >
                   {isLoading ? (
                     <>

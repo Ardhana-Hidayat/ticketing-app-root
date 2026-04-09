@@ -84,7 +84,7 @@ const EventDetailPage: React.FC = () => {
             </Link>
             <button
               onClick={() => navigate(-1)}
-              className="group flex items-center gap-3 text-white/50 hover:text-neon-cyan transition-colors font-bold uppercase tracking-[0.2em] text-sm"
+              className="group flex items-center gap-3 text-white/50 hover:text-neon-pink transition-colors font-bold uppercase tracking-[0.2em] text-sm"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-2 transition-transform" /> BACK TO LINEUP
             </button>
@@ -93,7 +93,7 @@ const EventDetailPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-neon-cyan">
+          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-neon-pink">
             <Loader2 className="w-16 h-16 animate-spin" />
             <p className="font-heading text-3xl uppercase tracking-widest animate-pulse">LOADING STAGE...</p>
           </div>
@@ -129,7 +129,7 @@ const EventDetailPage: React.FC = () => {
               <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
                 <div className="max-w-[1400px] mx-auto">
                   <div className="flex items-center gap-6 mb-6">
-                    <span className="text-neon-cyan font-bold tracking-[0.3em] text-sm block uppercase">
+                    <span className="text-neon-pink font-bold tracking-[0.3em] text-sm block uppercase">
                       OFFICIAL EVENT
                     </span>
                     <div className="w-12 h-[1px] bg-white/20"></div>
@@ -143,7 +143,7 @@ const EventDetailPage: React.FC = () => {
                   </h1>
                   
                   <div className="flex flex-wrap items-center gap-10 md:gap-16">
-                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-cyan transition-colors">
+                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-pink transition-colors">
                       <Calendar className="w-6 h-6 md:w-8 md:h-8" />
                       <span className="text-xl md:text-2xl font-bold uppercase tracking-[0.1em]">{formatDate(event.start_date)}</span>
                     </div>
@@ -151,7 +151,7 @@ const EventDetailPage: React.FC = () => {
                       <Clock className="w-6 h-6 md:w-8 md:h-8" />
                       <span className="text-xl md:text-2xl font-bold uppercase tracking-[0.1em]">{formatTime(event.start_date)} – {formatTime(event.end_date)}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-yellow transition-colors">
+                    <div className="flex items-center gap-4 text-white/70 hover:text-neon-pink transition-colors">
                       <MapPin className="w-6 h-6 md:w-8 md:h-8" />
                       <span className="text-xl md:text-2xl font-bold uppercase tracking-[0.1em]">{event.location}</span>
                     </div>
@@ -170,7 +170,7 @@ const EventDetailPage: React.FC = () => {
                     <h2 className="text-5xl md:text-7xl font-heading uppercase tracking-tighter text-white mb-8">
                        EVENT <span className="text-outline">DETAILS</span>
                     </h2>
-                    <div className="w-32 h-1 bg-neon-cyan mb-12"></div>
+                    <div className="w-32 h-1 bg-neon-pink mb-12"></div>
                     
                     <div className="text-xl md:text-2xl text-white/60 font-bold leading-relaxed whitespace-pre-line tracking-wide">
                       {event.description}
@@ -187,21 +187,21 @@ const EventDetailPage: React.FC = () => {
                         <li className="flex gap-4"><span className="text-neon-pink">/</span> STRICTLY NO REFUNDS</li>
                       </ul>
                     </div>
-                    <div className="p-8 bg-dark-grey border border-white/5 hover:border-neon-cyan transition-colors">
+                    <div className="p-8 bg-dark-grey border border-white/5 hover:border-white transition-colors">
                       <h4 className="font-heading uppercase text-3xl mb-6 text-white tracking-widest">FACILITIES</h4>
                       <ul className="text-sm font-bold text-white/50 space-y-4 tracking-[0.1em] uppercase">
-                        <li className="flex gap-4"><span className="text-neon-cyan">/</span> EXCLUSIVE MERCHANDISE</li>
-                        <li className="flex gap-4"><span className="text-neon-cyan">/</span> F&B DISTRICT</li>
-                        <li className="flex gap-4"><span className="text-neon-cyan">/</span> MEDICAL FIRST AID</li>
+                        <li className="flex gap-4"><span className="text-neon-pink">/</span> EXCLUSIVE MERCHANDISE</li>
+                        <li className="flex gap-4"><span className="text-neon-pink">/</span> F&B DISTRICT</li>
+                        <li className="flex gap-4"><span className="text-neon-pink">/</span> MEDICAL FIRST AID</li>
                       </ul>
                     </div>
                   </div>
 
                   {/* Secure Payment Note */}
-                  <div className="mt-8 p-10 border border-white/10 flex items-center justify-between group hover:border-white/30 transition-colors">
+                  <div className="mt-8 p-10 border border-white/10 flex items-center justify-between group hover:border-neon-pink transition-colors">
                     <div className="flex items-center gap-8">
-                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-neon-yellow/10 transition-all">
-                        <ShieldCheck className="w-8 h-8 text-neon-yellow" />
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-neon-pink/10 transition-all">
+                        <ShieldCheck className="w-8 h-8 text-neon-pink" />
                       </div>
                       <div>
                         <p className="font-heading uppercase tracking-widest text-3xl mb-2">SECURE CHECKOUT</p>
@@ -230,7 +230,7 @@ const EventDetailPage: React.FC = () => {
                             <div
                               key={ticket.id}
                               className={`group relative bg-dark-grey border border-white/5 p-8 transition-all ${
-                                isAvailable ? 'hover:border-neon-cyan cursor-pointer' : 'opacity-40 grayscale'
+                                isAvailable ? 'hover:border-neon-pink cursor-pointer' : 'opacity-40 grayscale'
                               }`}
                             >
                               {isSoldOut && (
@@ -265,7 +265,7 @@ const EventDetailPage: React.FC = () => {
                                 </div>
 
                                 <div className="border-t border-white/10 pt-8 mt-auto">
-                                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-neon-cyan mb-8">
+                                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-neon-pink mb-8">
                                     <ShoppingCart className="w-4 h-4" />
                                     <span>AVAILABLE: {ticket.remaining_quota}</span>
                                   </div>

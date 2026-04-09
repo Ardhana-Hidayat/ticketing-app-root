@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
+ 
     try {
       const res = await authApi.login(email, password);
       authApi.saveSession(res.token, res.user);
@@ -105,12 +105,16 @@ const LoginPage: React.FC = () => {
           -webkit-text-stroke: 1px white;
           color: transparent;
         }
+        .grid-background {
+          background-image: radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.03) 1px, transparent 0);
+          background-size: 32px 32px;
+        }
       `}</style>
       <div className="min-h-screen bg-black grid-background font-sans text-white selection:bg-neon-pink selection:text-white flex flex-col overflow-x-hidden relative">
         
         {/* Background glow effects */}
         <div className="absolute top-[20%] left-[10%] w-[40%] h-[40%] bg-neon-pink/10 rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-neon-cyan/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-neon-pink/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         {/* Navbar */}
         <nav className="w-full bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
@@ -204,7 +208,7 @@ const LoginPage: React.FC = () => {
                     <label htmlFor="login-password" className="block text-xs font-bold uppercase tracking-[0.2em] text-white/50">
                       PASSWORD
                     </label>
-                    <Link to="/forgot-password" hidden={isLoading} className="text-xs font-bold uppercase text-neon-cyan hover:text-white transition-colors tracking-widest">
+                    <Link to="/forgot-password" hidden={isLoading} className="text-xs font-bold uppercase text-neon-pink hover:text-white transition-colors tracking-widest">
                       FORGOT?
                     </Link>
                   </div>

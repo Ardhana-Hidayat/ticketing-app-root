@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User as UserIcon, LogOut, Loader2, ArrowRight, Mail, Ticket, ShoppingBag, History, Edit3, X, AlertCircle, ChevronDown, CheckCircle2, QrCode, Lock, Shield, UserCircle, Settings, Key, Package } from 'lucide-react';
+import { User as UserIcon, Loader2, ArrowRight, Mail, Ticket, ShoppingBag, History, X, CheckCircle2, QrCode, Lock, Shield, UserCircle, Key, Package } from 'lucide-react';
 import { authApi, orderApi } from '@/services/api';
 import type { User, Order } from '@/services/api';
 
@@ -102,7 +102,7 @@ const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center px-6">
-        <div className="w-12 h-12 mb-8 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(0,229,255,0.4)]"></div>
+        <div className="w-12 h-12 mb-8 border-2 border-neon-pink border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(255,0,128,0.4)]"></div>
         <p className="font-heading uppercase text-sm text-white tracking-widest animate-pulse">Syncing Session...</p>
       </div>
     );
@@ -118,7 +118,7 @@ const ProfilePage: React.FC = () => {
           </Link>
           <div className="flex items-center gap-6">
              {user?.role === 'admin' && (
-              <Link to="/admin" className="px-4 py-1.5 bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20 rounded-sm font-bold text-[9px] uppercase tracking-widest hover:bg-neon-cyan hover:text-black transition-all">Go to Admin</Link>
+              <Link to="/admin" className="px-4 py-1.5 bg-neon-pink/10 text-neon-pink border border-neon-pink/20 rounded-sm font-bold text-[9px] uppercase tracking-widest hover:bg-neon-pink hover:text-white transition-all">Go to Admin</Link>
             )}
              <button onClick={handleLogout} className="text-[9px] font-bold text-white/50 uppercase tracking-widest hover:text-red-500 transition-colors">Sign Out</button>
           </div>
@@ -133,12 +133,12 @@ const ProfilePage: React.FC = () => {
               <div className="w-24 h-24 bg-dark-grey border border-white/10 flex items-center justify-center rounded-sm">
                  <UserCircle className="w-16 h-16 text-white/10" />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-neon-cyan rounded-full border-2 border-black flex items-center justify-center">
-                 <CheckCircle2 size={12} className="text-black" />
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-neon-pink rounded-full border-2 border-black flex items-center justify-center text-black">
+                 <CheckCircle2 size={12} />
               </div>
            </div>
            <div className="text-center md:text-left flex-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-cyan mb-2">Authenticated Account</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-pink mb-2">Authenticated Account</p>
               <h1 className="text-4xl md:text-5xl font-heading uppercase leading-none tracking-tighter mb-2">{user?.name}</h1>
               <p className="text-white/40 text-sm">{user?.email}</p>
            </div>
@@ -149,7 +149,7 @@ const ProfilePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-dark-grey border border-white/5 rounded-sm text-center">
                  <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">Active Items</p>
-                 <p className="font-heading text-xl text-neon-cyan">{myPaidItems.length}</p>
+                 <p className="font-heading text-xl text-neon-pink">{myPaidItems.length}</p>
               </div>
            </div>
         </div>
@@ -205,25 +205,25 @@ const ProfilePage: React.FC = () => {
                         <div className="col-span-full py-24 bg-dark-grey/20 border border-dashed border-white/5 flex flex-col items-center text-center">
                            <ShoppingBag size={48} className="mb-4 text-white/10" />
                            <p className="text-white/40 text-sm italic font-medium">You haven't purchased anything yet.</p>
-                           <Link to="/" className="mt-8 px-8 py-3 bg-neon-cyan text-black font-bold uppercase text-[10px] tracking-widest hover:bg-white transition-all transform hover:-rotate-1">Discover Events</Link>
+                           <Link to="/" className="mt-8 px-8 py-3 bg-white text-black font-bold uppercase text-[10px] tracking-widest hover:bg-neon-pink hover:text-white transition-all transform hover:-rotate-1">Discover Events</Link>
                         </div>
                       ) : (
                         myPaidItems.map((item, idx) => (
                           <div 
                             key={idx} 
                             onClick={() => setSelectedItem(item)}
-                            className="bg-dark-grey border border-white/5 p-6 hover:border-neon-cyan transition-all cursor-pointer group flex flex-col relative overflow-hidden"
+                            className="bg-dark-grey border border-white/5 p-6 hover:border-neon-pink transition-all cursor-pointer group flex flex-col relative overflow-hidden"
                           >
                             <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
                                {item.item_type === 'ticket' ? <Ticket size={80} /> : <ShoppingBag size={80} />}
                             </div>
                             <div className="flex justify-between items-start mb-10 relative z-10">
-                               <div className="w-10 h-10 bg-black border border-white/10 flex items-center justify-center text-neon-pink shadow-[0_0_15px_rgba(254,44,85,0.1)] group-hover:shadow-[0_0_15px_rgba(254,44,85,0.3)] transition-all">
+                               <div className="w-10 h-10 bg-black border border-white/10 flex items-center justify-center text-neon-pink shadow-[0_0_15px_rgba(255,0,128,0.1)] group-hover:shadow-[0_0_15px_rgba(255,0,128,0.3)] transition-all">
                                   {item.item_type === 'ticket' ? <Ticket size={20} /> : <ShoppingBag size={20} />}
                                </div>
-                               <span className="text-[8px] font-black uppercase text-neon-yellow px-2 py-1 bg-neon-yellow/10 rounded-full tracking-widest">Ownership Confirmed</span>
+                               <span className="text-[8px] font-black uppercase text-white px-2 py-1 bg-white/10 rounded-full tracking-widest">Ownership Confirmed</span>
                             </div>
-                            <h3 className="text-xl font-heading uppercase text-white mb-8 group-hover:text-neon-cyan transition-colors truncate relative z-10">{item.item_name}</h3>
+                            <h3 className="text-xl font-heading uppercase text-white mb-8 group-hover:text-neon-pink transition-colors truncate relative z-10">{item.item_name}</h3>
                             <div className="flex items-center justify-between relative z-10">
                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Ref: {item.orderId?.slice(-8).toUpperCase()}</span>
                                <span className="flex items-center gap-1 text-[9px] font-black uppercase text-white tracking-widest">View Details <ArrowRight size={10} /></span>
@@ -265,9 +265,7 @@ const ProfilePage: React.FC = () => {
                                      <td className="p-4 font-heading text-[11px] uppercase truncate max-w-[150px]">{order.order_items?.[0]?.item_name || 'Multiple Assets'}</td>
                                      <td className="p-4 font-heading text-[11px] text-white/60">{formatPrice(order.total_amount)}</td>
                                      <td className="p-4 text-right">
-                                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border ${
-                                          order.status === 'paid' ? 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/5' : 'text-neon-pink border-neon-pink/30 bg-neon-pink/5'
-                                        }`}>
+                                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border border-white/20 text-white`}>
                                            {order.status}
                                         </span>
                                      </td>
@@ -290,33 +288,33 @@ const ProfilePage: React.FC = () => {
                    
                    <form onSubmit={handleUpdate} className="space-y-8">
                       <div className="space-y-2 group">
-                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-cyan transition-colors">Full Display Name</label>
+                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-pink transition-colors">Full Display Name</label>
                          <div className="relative">
                             <input 
                               value={name} 
                               onChange={e => setName(e.target.value)} 
-                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-cyan transition-all" 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-pink transition-all" 
                               placeholder="Enter your name"
                             />
-                            <UserIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-cyan/20 transition-colors" size={20} />
+                            <UserIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-pink/20 transition-colors" size={20} />
                          </div>
                       </div>
                       
                       <div className="space-y-2 group">
-                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-cyan transition-colors">Primary Contact Email</label>
+                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] group-focus-within:text-neon-pink transition-colors">Primary Contact Email</label>
                          <div className="relative">
                             <input 
                               value={email} 
                               onChange={e => setEmail(e.target.value)} 
-                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-cyan transition-all" 
+                              className="w-full bg-dark-grey border border-white/10 p-4 font-heading text-xl text-white outline-none focus:border-neon-pink transition-all" 
                               placeholder="Enter your email"
                             />
-                            <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-cyan/20 transition-colors" size={20} />
+                            <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-neon-pink/20 transition-colors" size={20} />
                          </div>
                       </div>
 
                       {(error || success) && activeSection === 'account' && (
-                        <div className={`p-4 text-center font-bold text-[10px] uppercase tracking-widest animate-in fade-in slide-in-from-top-2 ${error ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
+                        <div className={`p-4 text-center font-bold text-[10px] uppercase tracking-widest animate-in fade-in slide-in-from-top-2 ${error ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/30' : 'bg-white/10 text-white border border-white/20'}`}>
                            {error || success}
                         </div>
                       )}
@@ -324,7 +322,7 @@ const ProfilePage: React.FC = () => {
                       <button 
                         type="submit" 
                         disabled={isSaving}
-                        className="w-full py-5 bg-white text-black font-heading text-xl uppercase tracking-[0.2em] hover:bg-neon-cyan transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
+                        className="w-full py-5 bg-white text-black font-heading text-xl uppercase tracking-[0.2em] hover:bg-neon-pink transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
                       >
                          {isSaving ? <Loader2 className="animate-spin" size={24} /> : 'Save Profile Changes'}
                       </button>
@@ -378,7 +376,7 @@ const ProfilePage: React.FC = () => {
                       </div>
 
                       {(error || success) && activeSection === 'security' && (
-                        <div className={`p-4 text-center font-bold text-[10px] uppercase tracking-widest animate-in fade-in slide-in-from-top-2 ${error ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
+                        <div className={`p-4 text-center font-bold text-[10px] uppercase tracking-widest animate-in fade-in slide-in-from-top-2 ${error ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/30' : 'bg-white/10 text-white border border-white/20'}`}>
                            {error || success}
                         </div>
                       )}
@@ -394,7 +392,7 @@ const ProfilePage: React.FC = () => {
 
                    <div className="mt-12 p-6 border border-white/5 bg-white/[0.02]">
                       <div className="flex gap-4">
-                         <Shield className="text-neon-cyan flex-shrink-0" size={24} />
+                         <Shield className="text-neon-pink flex-shrink-0" size={24} />
                          <div>
                             <h4 className="text-sm font-bold uppercase tracking-widest mb-1">Account Protection Enabled</h4>
                             <p className="text-white/40 text-xs leading-relaxed">Your account is secured with standard encryption protocols. To maintain safety, avoid using reused passwords and regularly update your credentials.</p>
@@ -422,10 +420,10 @@ const ProfilePage: React.FC = () => {
                 
                 <div className="space-y-10 text-center">
                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-neon-cyan mb-4">
+                      <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-neon-pink mb-4">
                          {selectedItem.item_type === 'ticket' ? <Ticket size={32} /> : <ShoppingBag size={32} />}
                       </div>
-                      <h2 className="text-4xl font-heading uppercase border-b-2 border-neon-cyan pb-2 inline-block mb-2">{selectedItem.item_name}</h2>
+                      <h2 className="text-4xl font-heading uppercase border-b-2 border-neon-pink pb-2 inline-block mb-2">{selectedItem.item_name}</h2>
                       <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Proprietary Digital Asset</p>
                    </div>
                    
@@ -440,7 +438,7 @@ const ProfilePage: React.FC = () => {
                    
                    <div className="p-4 bg-white/5 rounded-sm border border-white/10">
                       <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-2">Identification Code</p>
-                      <p className="font-mono text-neon-cyan text-sm tracking-widest select-all">REF-{selectedItem.orderId?.toUpperCase()}</p>
+                      <p className="font-mono text-neon-pink text-sm tracking-widest select-all">REF-{selectedItem.orderId?.toUpperCase()}</p>
                    </div>
                    
                    <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest leading-relaxed">
