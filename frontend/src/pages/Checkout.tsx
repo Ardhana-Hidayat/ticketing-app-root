@@ -72,6 +72,8 @@ const Checkout: React.FC = () => {
       });
 
       if (orderData.payment?.checkout_url) {
+        // Fallback: simpan order ID di localStorage jika redirect param nanti hilang
+        localStorage.setItem('latest_order_id', orderData.id);
         window.location.href = orderData.payment.checkout_url;
       } else {
         setError('Failed to generate payment link. Please try again.');

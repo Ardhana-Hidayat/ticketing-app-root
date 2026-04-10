@@ -50,8 +50,8 @@ func (s *xenditService) CreateInvoice(orderID uuid.UUID, email string, amount fl
 		"payer_email":      email,
 		"description":      itemsDescription,
 		"invoice_duration": 86400, // 24 jam
-		"success_redirect_url": os.Getenv("FRONTEND_URL") + "/payment/success",
-		"failure_redirect_url": os.Getenv("FRONTEND_URL") + "/payment/failed",
+		"success_redirect_url": os.Getenv("FRONTEND_URL") + "/payment/success?id=" + orderID.String(),
+		"failure_redirect_url": os.Getenv("FRONTEND_URL") + "/payment/failed?id=" + orderID.String(),
 	}
 
 	// Mapping Metode Pembayaran untuk Xendit V2 Invoices (Hanya jika diset)
