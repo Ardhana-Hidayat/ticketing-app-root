@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User as UserIcon, Loader2, ArrowRight, Mail, Ticket, ShoppingBag, History, X, CheckCircle2, QrCode, Lock, Shield, UserCircle, Key, Package } from 'lucide-react';
+import { User as UserIcon, Loader2, ArrowRight, Mail, Ticket, ShoppingBag, History, X, CheckCircle2, Lock, Shield, UserCircle, Key, Package } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { authApi, orderApi } from '@/services/api';
 import type { User, Order } from '@/services/api';
 
@@ -459,14 +460,25 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ tab }) => {
                       <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Proprietary Digital Asset</p>
                    </div>
                    
-                   <div className="w-full aspect-square bg-[#050505] border border-white/5 p-8 flex items-center justify-center relative">
-                      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
-                         <QrCode size={250} />
+                    <div className="w-full aspect-square bg-[#050505] border border-white/5 p-8 flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] scale-150">
+                         <QRCodeCanvas 
+                           value={selectedItem.orderId} 
+                           size={300}
+                           bgColor="transparent"
+                           fgColor="#FFFFFF"
+                         />
                       </div>
-                      <div className="relative z-10 p-4 bg-white rounded-lg">
-                         <QrCode className="w-40 h-40 text-black" />
+                      <div className="relative z-10 p-4 bg-white rounded-lg shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                         <QRCodeCanvas 
+                           value={selectedItem.orderId} 
+                           size={160}
+                           bgColor="#FFFFFF"
+                           fgColor="#000000"
+                           level="H"
+                         />
                       </div>
-                   </div>
+                    </div>
                    
                    <div className="p-4 bg-white/5 rounded-sm border border-white/10">
                       <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-2">Identification Code</p>

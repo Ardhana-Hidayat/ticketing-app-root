@@ -1,6 +1,6 @@
 import type { ApiError } from '../types';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 export const IMAGE_BASE_URL = import.meta.env.VITE_SERVER_URL || API_BASE_URL.replace('/api/v1', '');
 
 export class RequestError extends Error {

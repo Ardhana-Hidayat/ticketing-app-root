@@ -1,14 +1,17 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Ticket } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { CheckCircle, ArrowRight, Ticket, QrCode } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useCart } from '@/context/CartContext';
 
 const PaymentSuccess: React.FC = () => {
   const { clearCart } = useCart();
 
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('id');
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Small delay to ensure state doesn't conflict with initial render
     const timer = setTimeout(() => {
       clearCart();
@@ -39,6 +42,33 @@ const PaymentSuccess: React.FC = () => {
             </h1>
             <p className="text-xl font-bold text-white/50 uppercase tracking-widest">TRANSACTION AUTHORIZED & SECURED</p>
           </div>
+
+          {orderId && (
+            <div className="relative group animate-in zoom-in-95 duration-700 delay-300">
+               <div className="absolute inset-0 bg-neon-pink blur-2xl opacity-10 group-hover:opacity-20 transition-opacity"></div>
+               <div className="relative bg-dark-grey border border-white/10 p-10 flex flex-col items-center">
+                  <div className="mb-6 flex items-center gap-3">
+                     <QrCode className="text-neon-pink w-4 h-4" />
+                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Official E-Ticket Code</span>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-[0_0_50px_rgba(255,0,128,0.15)] group-hover:shadow-[0_0_50px_rgba(255,0,128,0.25)] transition-all duration-500">
+                     <QRCodeCanvas 
+                        value={orderId} 
+                        size={200}
+                        level="H"
+                        bgColor="#FFFFFF"
+                        fgColor="#000000"
+                     />
+                  </div>
+                  
+                  <div className="mt-8 text-center">
+                     <p className="text-neon-pink font-mono text-xs tracking-widest uppercase mb-1">{orderId.slice(0, 8)}...{orderId.slice(-8)}</p>
+                     <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Screenshot this code for backup</p>
+                  </div>
+               </div>
+            </div>
+          )}
 
           <div className="bg-dark-grey border border-white/10 p-8 text-left space-y-6 transform hover:border-neon-pink transition-colors">
               <div className="flex items-center gap-4">

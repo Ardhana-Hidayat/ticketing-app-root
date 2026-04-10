@@ -180,27 +180,6 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              {/* Step 3: Payment Hub */}
-              <div className="bg-dark-grey border border-white/5 rounded-sm">
-                <div className="p-8 border-b border-white/5 flex items-center gap-4">
-                   <span className="w-8 h-8 rounded-full bg-neon-pink text-white font-bold flex items-center justify-center text-xs">03</span>
-                   <h2 className="text-xl font-bold uppercase tracking-[0.2em]">Transaction Gateway</h2>
-                </div>
-                <div className="p-10">
-                   <div className="p-8 border-2 border-neon-pink bg-black flex items-center justify-between group hover:shadow-[0_0_30px_rgba(255,0,128,0.1)] transition-all">
-                      <div className="flex items-center gap-6">
-                         <div className="w-16 h-16 bg-dark-grey border border-white/10 flex items-center justify-center text-3xl font-heading text-neon-pink group-hover:bg-white group-hover:text-black transition-all">X</div>
-                         <div>
-                            <p className="text-xl font-heading uppercase text-white mb-1">XENDIT_HUB</p>
-                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Global Link Node_V4</p>
-                         </div>
-                      </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-neon-pink flex items-center justify-center group-hover:shadow-[0_0_15px_#FF0080]">
-                         <div className="w-3 h-3 rounded-full bg-neon-pink"></div>
-                      </div>
-                   </div>
-                </div>
-              </div>
 
             </div>
 
